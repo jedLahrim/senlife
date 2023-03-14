@@ -24,26 +24,27 @@ import {
   ERR_EMAIL_NOT_FOUND,
   ERR_EXPIRED_CODE,
   ERR_INVALID_TOKEN,
-  ERR_NOT_FOUND_EVENT,
+  ERR_NOT_FOUND,
   ERR_NOT_FOUND_USER,
   ERR_SEND_MAIL,
   ERR_USER_NOT_ACTIVATED,
 } from '../commons/errors/errors-codes';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MyCode } from '../code/entities/code.entity';
-import { Constant } from '../commons/constant';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ResetUserDto } from './dto/reset-user-password.dto';
 import { ChangeUserDto } from './dto/change-user-password.dto';
 import { ConfigService } from '@nestjs/config';
 import { jwtStrategy } from './strategy/jwt.strategy';
-import { OAuth2Client } from 'google-auth-library';
 import { SocialLoginDto, SocialLoginType } from './dto/social-login.dto';
 import axios from 'axios';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Constant } from '../commons/constant';
 
 @Injectable()
 export class UserService {
+  jwtSecret: string;
+
   constructor(
     @InjectRepository(MyCode)
     private myCodeRepo: Repository<MyCode>,
@@ -54,33 +55,28 @@ export class UserService {
     private jwtStrategy: jwtStrategy,
     private mailerService: MailerService,
     private configService: ConfigService,
-    private authClient: OAuth2Client,
-  ) {}
+  ) {
+    this.jwtSecret = this.configService.get('JWT_SECRET_KEY');
+  }
 
-  async register(createUserDto: CreateUserDto) {
-    const user = await this._createUser(createUserDto);
-
-    try {
+  async register(dto: CreateUserDto) {
+    const user = await this.userRepo.findOne({ where: { email: dto.email } });
+    if (user) {
+      throw new ConflictException(new AppError(ERR_EMAIL_ALREADY_EXIST));
+    } else {
+      const user = await this._createUser(dto);
       await this.sendMail(user.email, user);
-    } catch (error) {
-      if (error.code == 'ER_DUP_ENTRY') {
-        throw new ConflictException(new AppError(ERR_EMAIL_ALREADY_EXIST));
-      } else {
-        throw new InternalServerErrorException('402');
-      }
     }
   }
 
-  async _createUser(
-    createUserDto: CreateUserDto,
-    activated = false,
-  ): Promise<User> {
-    const { email, fullName, password } = createUserDto;
+  async _createUser(dto: CreateUserDto, activated = false): Promise<User> {
+    const { email, firstName, lastName, password } = dto;
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
     const user = this.userRepo.create({
       email,
-      fullName: fullName,
+      firstName: firstName,
+      lastName: lastName,
       password: hashedPassword,
       activated,
     });
@@ -90,8 +86,6 @@ export class UserService {
 
   async sendMail(email: string, user: User): Promise<any> {
     try {
-      user = await this.userRepo.findOne({ where: { email } });
-
       const from = this.configService.get('SENDER_MAIL');
       const code = await this.generateCode(user);
 
@@ -105,9 +99,7 @@ export class UserService {
         //html: `Click <a href="${url}">here</a> to activate your account !`,
       });
     } catch (e) {
-      throw new NotFoundException(
-        new AppError(ERR_SEND_MAIL, 'email not found'),
-      );
+      throw new NotFoundException(new AppError(ERR_SEND_MAIL));
     }
   }
 
@@ -135,11 +127,15 @@ export class UserService {
 
   async activate(code: any): Promise<User> {
     const now = new Date();
-    const found = await this.myCodeRepo.findOne({ where: { code: code } });
+    const found = await this.myCodeRepo.findOne({
+      where: { code: code },
+      loadEagerRelations: true,
+      relations: ['user'],
+    });
     if (!found) {
       throw new ConflictException('code is incorrect');
     }
-    const user = await this.getUserById(found.userId);
+    const user = found.user;
     if (user.code.length > 2) {
       throw new InternalServerErrorException(
         new AppError(`ERR`, 'account already activated'),
@@ -165,8 +161,12 @@ export class UserService {
     try {
       const now = new Date();
 
-      const found = await this.myCodeRepo.findOne({ where: { code: code } });
-      const user = await this.getUserById(found.userId);
+      const found = await this.myCodeRepo.findOne({
+        where: { code: code },
+        loadEagerRelations: true,
+        relations: ['user'],
+      });
+      const user = found.user;
       if (found.expireAt < now) {
         //
         await this.myCodeRepo.delete({ id: found.id });
@@ -177,8 +177,7 @@ export class UserService {
       } else {
         if (found.code == code) {
           const salt = await bcrypt.genSalt(5);
-          const hashedPassword = await bcrypt.hash(newPassword, salt);
-          user.password = hashedPassword;
+          user.password = await bcrypt.hash(newPassword, salt);
           const newUser = await this.userRepo.save(user);
           return this._getUserWithTokens(newUser);
         }
@@ -274,7 +273,7 @@ export class UserService {
   }
 
   async generateResetCode(user: User) {
-    const code = Constant.ResetCodeString(6);
+    const code = Constant.randomCodeString(6);
     const expireAt = new Date(new Date().getTime() + 200000);
     const thisCode = this.myCodeRepo.create({
       code: code,
@@ -296,13 +295,14 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const { fullName, profilePicture } = updateUserDto;
+    const { firstName, lastName, profilePicture } = updateUserDto;
     const updateResult = await this.userRepo.update(id, {
-      fullName,
+      firstName,
+      lastName,
       profilePicture,
     });
     if (updateResult.affected == null || updateResult.affected == 0) {
-      throw new NotFoundException(new AppError(ERR_NOT_FOUND_EVENT));
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND));
     }
 
     const user = await this.getUserById(id);
@@ -323,7 +323,7 @@ export class UserService {
 
   async getUserByToken(token: string): Promise<User> {
     const result = this.jwtService.verify(token, {
-      secret: Constant.JWTSecret,
+      secret: this.jwtSecret,
     });
 
     if (result.email) {
@@ -338,7 +338,7 @@ export class UserService {
   async refreshToken(refresh: string): Promise<User> {
     try {
       // Check if refresh is valid
-      const r = this.jwtService.verify(refresh, { secret: Constant.JWTSecret });
+      const r = this.jwtService.verify(refresh, { secret: this.jwtSecret });
 
       // GET USER
       const user = await this.getUserByToken(refresh);
@@ -390,7 +390,8 @@ export class UserService {
       const password = this._randomPassword();
       const dto = new CreateUserDto(
         data.email,
-        data.name,
+        data.givenName,
+        data.familyName,
         password,
         password,
         data.picture,

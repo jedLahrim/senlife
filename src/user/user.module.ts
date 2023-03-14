@@ -10,7 +10,6 @@ import { PassportModule } from '@nestjs/passport';
 import { HttpModule } from '@nestjs/axios';
 import { MyCode } from '../code/entities/code.entity';
 import { jwtStrategy } from './strategy/jwt.strategy';
-import { OAuth2Client } from 'google-auth-library';
 
 @Module({
   imports: [
@@ -37,25 +36,7 @@ import { OAuth2Client } from 'google-auth-library';
     }),
   ],
   controllers: [UserController],
-  providers: [
-    UserService,
-    jwtStrategy,
-    ConfigService,
-    JwtService,
-    {
-      provide: OAuth2Client,
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        const clientId: string = configService.get('GOOGLE_CLIENT_ID');
-        const clientSecret: string = configService.get('GOOGLE_CLIENT_SECRET');
-
-        return new OAuth2Client({
-          clientId,
-          clientSecret,
-        });
-      },
-    },
-  ],
+  providers: [UserService, jwtStrategy, ConfigService, JwtService],
   exports: [UserService],
 })
 export class UserModule {}

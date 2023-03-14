@@ -1,4 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateLabelDto } from './create-label.dto';
+import { CreateImprovementNeedDto } from './create-improvement-need.dto';
 
-export class UpdateLabelDto extends PartialType(CreateLabelDto) {}
+export class UpdateImprovementNeedDto extends PartialType(
+  CreateImprovementNeedDto,
+) {}

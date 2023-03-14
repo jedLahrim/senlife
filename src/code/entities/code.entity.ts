@@ -9,8 +9,8 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../auth/entities/user.entity';
 import { Exclude } from 'class-transformer';
+import { User } from '../../user/entities/user.entity';
 
 @Entity()
 export class MyCode extends BaseEntity {
@@ -25,15 +25,8 @@ export class MyCode extends BaseEntity {
     eager: false,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({
-    name: 'user_id',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'fk_user_id',
-  })
   @Exclude({ toPlainOnly: true })
   user: User;
-  @RelationId((code: MyCode) => code.user)
-  userId: string;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,67 +1,73 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateLabelDto } from './dto/create-label.dto';
-import { UpdateLabelDto } from './dto/update-label.dto';
+import { CreateImprovementNeedDto } from './dto/create-improvement-need.dto';
+import { UpdateImprovementNeedDto } from './dto/update-improvement-need.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Label } from './entities/label.entity';
+import { ImprovementNeed } from './entities/improvement-need.entity';
 import { AppError } from '../commons/errors/app-error';
 import { I18nContext } from 'nestjs-i18n';
 import { ERR_NOT_FOUND } from '../commons/errors/errors-codes';
 
 @Injectable()
-export class LabelService {
+export class ImprovementNeedService {
   constructor(
-    @InjectRepository(Label)
-    private labelRepo: Repository<Label>,
+    @InjectRepository(ImprovementNeed)
+    private improvementNeedRepository: Repository<ImprovementNeed>,
   ) {}
 
-  create(createLabelDto: CreateLabelDto): Promise<Label> {
-    const { name } = createLabelDto;
-    const label = this.labelRepo.create({
+  create(dto: CreateImprovementNeedDto): Promise<ImprovementNeed> {
+    const { name } = dto;
+    const improvementNeed = this.improvementNeedRepository.create({
       name,
     });
-    return this.labelRepo.save(label);
+    return this.improvementNeedRepository.save(improvementNeed);
   }
 
-  async createMany(createLabelDtos: CreateLabelDto[]): Promise<Label[]> {
+  async createMany(
+    dtos: CreateImprovementNeedDto[],
+  ): Promise<ImprovementNeed[]> {
     const list = [];
-    for (const dto of createLabelDtos) {
-      const label = await this.create(dto);
-      list.push(label);
+    for (const dto of dtos) {
+      const improvementNeed = await this.create(dto);
+      list.push(improvementNeed);
     }
 
     return list;
   }
 
-  async findAll(i18n: I18nContext): Promise<Label[]> {
-    const labels = await this.labelRepo.find();
-    return labels.map((value) => {
-      value.name = i18n.t(`locale.${value.name}`);
+  async findAll(i18n: I18nContext): Promise<ImprovementNeed[]> {
+    const improvementNeeds = await this.improvementNeedRepository.find();
+    return improvementNeeds.map((value) => {
+      value.name = i18n.t(`locale.${value.name}`, { defaultValue: value.name });
       return value;
     });
   }
 
-  async findOne(id: string, i18n: I18nContext): Promise<Label> {
-    const label = await this.labelRepo.findOne({ where: { id } });
-    label.name = i18n.t(`locale.${label.name}`);
-    return label;
+  async findOne(id: string, i18n: I18nContext): Promise<ImprovementNeed> {
+    const improvementNeed = await this.improvementNeedRepository.findOne({
+      where: { id },
+    });
+    improvementNeed.name = i18n.t(`locale.${improvementNeed.name}`, {
+      defaultValue: improvementNeed.name,
+    });
+    return improvementNeed;
   }
 
-  async update(id: string, updateLabelDto: UpdateLabelDto) {
+  async update(id: string, updateLabelDto: UpdateImprovementNeedDto) {
     const { name } = updateLabelDto;
 
-    const updateResult = await this.labelRepo.update(id, {
+    const updateResult = await this.improvementNeedRepository.update(id, {
       name,
     });
 
     if (updateResult.affected && updateResult.affected > 0) {
-      return this.labelRepo.find({ where: { id } });
+      return this.improvementNeedRepository.findOne({ where: { id } });
     } else {
       throw new NotFoundException(new AppError(ERR_NOT_FOUND));
     }
   }
 
   remove(id: string) {
-    return `This action removes a #${id} label`;
+    return `This action removes a #${id} improvementNeed`;
   }
 }

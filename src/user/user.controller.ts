@@ -41,7 +41,7 @@ export class UserController {
     return this.userService.login(loginUserDto);
   }
 
-  @Post('verify_code')
+  @Post('verify-code')
   async activate(@Body('code') code: any): Promise<User & any> {
     return this.userService.activate(code);
   }
@@ -70,7 +70,7 @@ export class UserController {
     return this.userService.sendMail(email, user);
   }
 
-  @Post('forget_password')
+  @Post('forget-password')
   async sendRestEmail(
     @Query('email') email: string,
     @GetUser() user?: User,
@@ -78,12 +78,12 @@ export class UserController {
     return this.userService.sendResetMail(user, email);
   }
 
-  @Post('reset_new_password')
+  @Post('reset-new-password')
   async reset(@Body() resetUserDto: ResetUserDto): Promise<User & any> {
     return await this.userService.reset(resetUserDto);
   }
 
-  @Post('change_password')
+  @Post('change-password')
   @UseGuards(AuthGuard('jwt'))
   async changePassword(
     @Body() changeUserDto: ChangeUserDto,
@@ -108,7 +108,7 @@ export class UserController {
     return this.userService.remove(+id);
   }
 
-  @Post('social_login')
+  @Post('social-login')
   // TODO: change Promise<User | any> to Promise<User>
   async socialLogin(
     @Body() socialLoginDto: SocialLoginDto,

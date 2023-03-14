@@ -14,7 +14,12 @@ export class CreateUserDto {
   @IsString()
   @MinLength(4)
   @MaxLength(20)
-  fullName: string;
+  firstName: string;
+
+  @IsString()
+  @MinLength(4)
+  @MaxLength(20)
+  lastName: string;
 
   @IsString()
   @MinLength(8)
@@ -39,13 +44,15 @@ export class CreateUserDto {
 
   constructor(
     email: string,
-    fullName: string,
+    firstName: string,
+    lastName: string,
     password: string,
     newPassword: string,
     profilePicture: string,
   ) {
     this.email = email;
-    this.fullName = fullName;
+    this.firstName = firstName;
+    this.lastName = lastName;
     this.password = password;
     this.newPassword = newPassword;
     this.profilePicture = profilePicture;

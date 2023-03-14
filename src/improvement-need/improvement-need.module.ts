@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { LabelService } from './label.service';
-import { LabelController } from './label.controller';
+import { ImprovementNeedService } from './improvement-need.service';
+import { ImprovementNeedController } from './improvement-need.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Label } from './entities/label.entity';
+import { ImprovementNeed } from './entities/improvement-need.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Label])],
-  controllers: [LabelController],
-  providers: [LabelService],
+  imports: [TypeOrmModule.forFeature([ImprovementNeed])],
+  controllers: [ImprovementNeedController],
+  providers: [ImprovementNeedService],
 })
-export class LabelModule {}
+export class ImprovementNeedModule {}

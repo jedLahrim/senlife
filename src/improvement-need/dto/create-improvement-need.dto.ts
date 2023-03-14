@@ -1,3 +1,3 @@
-export class CreateLabelDto {
+export class CreateImprovementNeedDto {
   name: string;
 }

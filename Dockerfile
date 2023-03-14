@@ -1,6 +1,6 @@
 FROM node:14.15.1-alpine
 
-WORKDIR event_app
+WORKDIR senlife
 COPY package.json .
 
 RUN npm install

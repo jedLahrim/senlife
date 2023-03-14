@@ -5,7 +5,14 @@
   "social_interaction": "Social interaction",
   "motor_skills": "Motor skills",
   "flexibility_understanding": "Flexibility & understanding",
-  "routine_repetition": "Routine & repetition"
+  "routine_repetition": "Routine & repetition",
+  "ahd": "AHD",
+  "dyslexia": "Dyslexia",
+  "adhd": "ADHD",
+  "dyspraxia": "Dyspraxia",
+  "add": "ADD",
+  "ocd": "OCD",
+  "other": "Other"
 }
 
 
