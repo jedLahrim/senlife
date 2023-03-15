@@ -12,7 +12,6 @@ import { UserModule } from './user/user.module';
 import { ChildModule } from './child/child.module';
 import { CodeModule } from './code/code.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
-import * as process from 'process';
 
 @Module({
   imports: [
@@ -26,7 +25,7 @@ import * as process from 'process';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         //process.env what you have in CMD
-        const synchronize = process.env.ENV != 'prod';
+        const synchronize = process.env.ENV == 'prod';
 
         return {
           type: 'mysql',
