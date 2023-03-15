@@ -9,6 +9,7 @@ import { Exclude } from 'class-transformer';
 import { MyCode } from '../../code/entities/code.entity';
 import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { Child } from '../../child/entities/child.entity';
+import { UserType } from '../enums/user-type.enum';
 
 @Entity()
 export class User extends BaseEntity {
@@ -22,6 +23,9 @@ export class User extends BaseEntity {
   firstName: string;
   @Column()
   lastName: string;
+
+  @Column()
+  type: UserType;
 
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;

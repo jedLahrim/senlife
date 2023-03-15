@@ -8,7 +8,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const logger = new Logger();
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    snapshot: true,
+    logger: logger,
   });
   _initConfig(app);
 

@@ -17,9 +17,10 @@ export class NeuroDiverseConditionService {
   ) {}
 
   create(dto: CreateNeuroDiverseConditionDto) {
-    const { name } = dto;
+    const { name, type } = dto;
     const diverseCondition = this.neuroDiverseConditionRepo.create({
       name,
+      type,
     });
     return this.neuroDiverseConditionRepo.save(diverseCondition);
   }
