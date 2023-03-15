@@ -7,6 +7,7 @@ import { NeuroDiverseCondition } from './entities/neuro-diverse-condition.entity
 import { I18nContext } from 'nestjs-i18n';
 import { AppError } from '../commons/errors/app-error';
 import { ERR_NOT_FOUND } from '../commons/errors/errors-codes';
+import { NeuroDiverseConditionType } from './enums/neuro-diverse-condition-type';
 
 @Injectable()
 export class NeuroDiverseConditionService {
@@ -37,8 +38,8 @@ export class NeuroDiverseConditionService {
 
   async findAll(i18n: I18nContext): Promise<NeuroDiverseCondition[]> {
     const diverseConditions = await this.neuroDiverseConditionRepo.find({
-      order: {
-        updatedAt: 'desc',
+      where: {
+        type: NeuroDiverseConditionType.PREDEFINED,
       },
     });
     return diverseConditions.map((value) => {

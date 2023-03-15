@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ChildNeuroDiverseCondition } from '../../child/entities/child-neuro-diverse-condition.entity';
+import { NeuroDiverseConditionType } from '../enums/neuro-diverse-condition-type';
 
 @Entity()
 export class NeuroDiverseCondition extends BaseEntity {
@@ -16,6 +17,9 @@ export class NeuroDiverseCondition extends BaseEntity {
 
   @Column()
   name: string;
+
+  @Column()
+  type: NeuroDiverseConditionType;
 
   @CreateDateColumn()
   createdAt: Date;
