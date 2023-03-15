@@ -13,7 +13,7 @@ async function bootstrap() {
   _initConfig(app);
 
   _initSwagger(app);
-  const port = process.env.STAGE == 'prod' ? process.env.PORT : 3000;
+  const port = process.env.ENV == 'dev' ? 3000 : process.env.PORT;
   await app.listen(port);
   logger.log(`Application listening on port ${port}`);
 }
