@@ -12,6 +12,7 @@ import { UserModule } from './user/user.module';
 import { ChildModule } from './child/child.module';
 import { CodeModule } from './code/code.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
+import * as process from "process";
 
 @Module({
   imports: [
