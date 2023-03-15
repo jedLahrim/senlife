@@ -25,7 +25,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         //process.env what you have in CMD
-        const synchronize = process.env.STAGE != 'prod';
+        const synchronize = configService.get('ENV') != 'prod';
 
         return {
           type: 'mysql',
