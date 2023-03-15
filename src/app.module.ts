@@ -29,19 +29,21 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
         const username = configService.get('DB_USERNAME');
         const password = configService.get('DB_PASSWORD');
         const database = configService.get('DB');
-        console.log(
-          `DB_HOST=${host} DB_PORT=${port} DB_USERNAME=${username} DB_PASSWORD=${password} DB=${database}`,
-        );
-        //process.env what you have in CMD
-        const synchronize = process.env.ENV == 'prod';
+        const env = process.env.ENV;
+        const synchronize = env == 'prod';
+        if (env != 'prod') {
+          console.log(
+            `DB_HOST=${host}\nDB_PORT=${port}\nDB_USERNAME=${username}\nDB_PASSWORD=${password}\nDB=${database}\nENV=${env}`,
+          );
+        }
 
         return {
           type: 'mysql',
-          host: configService.get('DB_HOST'),
-          port: configService.get('DB_PORT'),
-          username: configService.get('DB_USERNAME'),
-          password: configService.get('DB_PASSWORD'),
-          database: configService.get('DB'),
+          host,
+          port,
+          username,
+          password,
+          database,
           autoLoadEntities: true,
           synchronize: synchronize,
         };
