@@ -24,6 +24,14 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        const host = configService.get('DB_HOST');
+        const port = configService.get('DB_PORT');
+        const username = configService.get('DB_USERNAME');
+        const password = configService.get('DB_PASSWORD');
+        const database = configService.get('DB');
+        console.log(
+          `DB_HOST=${host} DB_PORT=${port} DB_USERNAME=${username} DB_PASSWORD=${password} DB=${database}`,
+        );
         //process.env what you have in CMD
         const synchronize = process.env.ENV == 'prod';
 
