@@ -14,7 +14,7 @@ async function bootstrap() {
 
   _initSwagger(app);
   logger.log(`process.env.ENV=${process.env.ENV}`);
-  const port = process.env.ENV == 'dev' ? 3000 : process.env.$PORT;
+  const port = process.env.ENV == 'dev' ? 3000 : process.env.PORT;
   await app.listen(port);
   logger.log(`Application listening on port ${port}`);
 }
