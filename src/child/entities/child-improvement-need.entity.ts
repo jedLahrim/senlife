@@ -14,8 +14,8 @@ export class ChildImprovementNeed extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ default: true })
-  visibleForCarer: boolean;
+  @Column({ nullable: true })
+  description: string;
 
   @ManyToOne(() => Child, (object) => object.childImprovementNeeds)
   child: Child;

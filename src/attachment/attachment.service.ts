@@ -26,10 +26,11 @@ export class AttachmentService {
       const bucket = this.configService.get('AWS_BACKET_NAME');
       const accessKeyId = this.configService.get('AWS_ACCESS_KEY');
       const secretAccessKey = this.configService.get('AWS_SECRET_KEY');
+      const key = `${uuid()}-${file.originalname}`;
       const awsFile: PutObjectCommandInput = {
         Body: file.buffer,
         Bucket: bucket,
-        Key: `${uuid()}-${file.originalname}`,
+        Key: key,
         ContentType: file.mimetype,
         ACL: 'public-read',
       };
@@ -44,7 +45,7 @@ export class AttachmentService {
       // save attachment after upload
       const { name } = uploadAttachmentDto;
       const attachment = this.attachmentRepo.create({
-        name,
+        name: name ?? key,
         url: sendData.Location,
       });
       return this.attachmentRepo.save(attachment);
