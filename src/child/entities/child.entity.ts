@@ -23,13 +23,13 @@ export class Child extends BaseEntity {
   @Column()
   fullName?: string;
 
-  @Column()
+  @Column({ nullable: true })
   birthdayDate?: Date;
 
-  @Column()
+  @Column({ nullable: true })
   address?: string;
 
-  @Column()
+  @Column({ nullable: true })
   gender?: Gender;
 
   @ManyToOne(() => User, (user) => user.children)

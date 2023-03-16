@@ -30,7 +30,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
         const password = configService.get('DB_PASSWORD');
         const database = configService.get('DB');
         const env = process.env.ENV;
-        const synchronize = env == 'prod';
+        const synchronize = env != 'prod';
         if (env != 'prod') {
           console.log(
             `DB_HOST=${host}\nDB_PORT=${port}\nDB_USERNAME=${username}\nDB_PASSWORD=${password}\nDB=${database}\nENV=${env}`,
