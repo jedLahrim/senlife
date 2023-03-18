@@ -12,6 +12,7 @@ import { UserModule } from './user/user.module';
 import { ChildModule } from './child/child.module';
 import { CodeModule } from './code/code.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
+import { AttachmentModule } from './attachment/attachment.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
     NeuroDiverseConditionModule,
     ChildModule,
     CodeModule,
+    AttachmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

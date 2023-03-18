@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { HttpModule } from '@nestjs/axios';
 import { MyCode } from '../code/entities/code.entity';
 import { jwtStrategy } from './strategy/jwt.strategy';
+import { EmailCode } from '../email-code/entities/email-code.entity';
 
 @Module({
   imports: [
@@ -27,12 +28,12 @@ import { jwtStrategy } from './strategy/jwt.strategy';
         };
       },
     }),
-    TypeOrmModule.forFeature([User, MyCode]),
+    TypeOrmModule.forFeature([User, MyCode, EmailCode]),
     HttpModule,
     ConfigModule,
-    PassportModule.register({ defaultStrategy: 'Jwt' }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: 'jedJlxSecret2023',
+      secret: 'amine@^scret@$senlife@!',
     }),
   ],
   controllers: [UserController],

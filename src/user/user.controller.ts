@@ -115,4 +115,16 @@ export class UserController {
   ): Promise<User | any> {
     return this.userService.socialLogin(socialLoginDto);
   }
+  @Post('verify-email')
+  async verifyEmail(
+    @Body('email') email: string,
+  ): Promise<User | any> {
+    return this.userService.verifyEmail(email);
+  }
+  @Post('activate-email')
+  async activateEmail(
+      @Body('code') code: string,
+  ): Promise<User | any> {
+    return this.userService.activateEmail(code);
+  }
 }

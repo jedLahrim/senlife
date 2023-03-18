@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -23,6 +24,8 @@ import {
   ERR_EMAIL_ALREADY_EXIST,
   ERR_EMAIL_NOT_FOUND,
   ERR_EXPIRED_CODE,
+  ERR_GENERATE_FIREBASE_DYNAMIC_LINK,
+  ERR_INCORRECT_CODE,
   ERR_INVALID_TOKEN,
   ERR_NOT_FOUND,
   ERR_NOT_FOUND_USER,
@@ -35,11 +38,11 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { ResetUserDto } from './dto/reset-user-password.dto';
 import { ChangeUserDto } from './dto/change-user-password.dto';
 import { ConfigService } from '@nestjs/config';
-import { jwtStrategy } from './strategy/jwt.strategy';
 import { SocialLoginDto, SocialLoginType } from './dto/social-login.dto';
 import axios from 'axios';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Constant } from '../commons/constant';
+import { EmailCode } from '../email-code/entities/email-code.entity';
 
 @Injectable()
 export class UserService {
@@ -48,11 +51,12 @@ export class UserService {
   constructor(
     @InjectRepository(MyCode)
     private myCodeRepo: Repository<MyCode>,
+    @InjectRepository(EmailCode)
+    private codeRepo: Repository<EmailCode>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
     @Inject(forwardRef(() => JwtService))
     private jwtService: JwtService,
-    private jwtStrategy: jwtStrategy,
     private mailerService: MailerService,
     private configService: ConfigService,
   ) {
@@ -250,7 +254,6 @@ export class UserService {
       );
     }
   }
-
   async getUserById(id: string): Promise<User> {
     const found = await this.userRepo.findOne({ where: { id } });
     if (!found) {
@@ -286,7 +289,7 @@ export class UserService {
   private generateToken(payload: any, expiresIn: number): string {
     return this.jwtService.sign(payload, {
       expiresIn: expiresIn,
-      secret: 'jedJlxSecret2023',
+      secret: this.jwtSecret,
     });
   }
 
@@ -309,8 +312,8 @@ export class UserService {
     return this._getUserWithTokens(user);
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    return await this.userRepo.find();
   }
 
   findOne(id: number) {
@@ -326,8 +329,8 @@ export class UserService {
       secret: this.jwtSecret,
     });
 
-    if (result.email) {
-      return this.userRepo.findOne({ where: { email: result.email } });
+    if (result.user) {
+      return this.userRepo.findOne({ where: { email: result.user } });
     } else {
       throw new NotFoundException(
         new AppError(ERR_NOT_FOUND_USER, 'user not exist'),
@@ -338,8 +341,6 @@ export class UserService {
   async refreshToken(refresh: string): Promise<User> {
     try {
       // Check if refresh is valid
-      const r = this.jwtService.verify(refresh, { secret: this.jwtSecret });
-
       // GET USER
       const user = await this.getUserByToken(refresh);
 
@@ -409,5 +410,79 @@ export class UserService {
 
   private _randomPassword(): string {
     return `random${uuid()}`;
+  }
+
+  async verifyEmail(email) {
+    const code = await this._generateEmailCode(email);
+    return await this._createDynamicLink(code);
+  }
+  _generateEmailCode(email) {
+    const code = Constant.randomCodeString(6);
+    const expireAt = new Date(new Date().getTime() + 200000);
+    const thisCode = this.codeRepo.create({
+      code: code,
+      email: email,
+      expireAt: expireAt,
+    });
+    return this.codeRepo.save(thisCode);
+  }
+  private async _createDynamicLink(code: EmailCode) {
+    const firebaseAPIKey = await this.configService.get('FIREBASE_WEB_API_KEY');
+    const response = await axios({
+      method: 'POST',
+      url: `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseAPIKey}`,
+      data: {
+        dynamicLinkInfo: {
+          domainUriPrefix: 'https://senlife.page.link',
+          link: `https://senlife.page.link/activate?code=${code}`,
+          androidInfo: {
+            androidPackageName: 'com.senlife.app',
+          },
+          iosInfo: {
+            iosBundleId: 'com.senlife.app',
+          },
+        },
+      },
+    }).catch(() => {
+      throw new ForbiddenException(ERR_GENERATE_FIREBASE_DYNAMIC_LINK);
+    });
+    const shortLink = response.data.shortLink;
+    return { shortLink, code: code.code };
+  }
+  async activateEmail(code: string) {
+    const found = await this._checkCodeValidation(code);
+    const password = this._randomPassword();
+    // we take here the firstName and LastName from the name that is before the @ in the email
+    // we use the substring function to take from character index 0 to @
+    const name = found.email.substring(0, found.email.indexOf('@'));
+    const dto = new CreateUserDto(
+      found.email,
+      name,
+      name,
+      password,
+      password,
+      null,
+    );
+    let user = await this.userRepo.findOne({ where: { email: found.email } });
+    if (!user) {
+      user = await this._createUser(dto, true);
+    }
+    return this._getUserWithTokens(user);
+  }
+
+  private async _checkCodeValidation(code: string): Promise<EmailCode> {
+    const now = new Date();
+    const found = await this.codeRepo.findOne({
+      where: { code: code },
+    });
+    if (!found) {
+      throw new ConflictException(new AppError(ERR_INCORRECT_CODE));
+    } else if (found.expireAt < now) {
+      throw new HttpException(
+        new AppError(ERR_EXPIRED_CODE),
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return found;
   }
 }
