@@ -6,10 +6,7 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
@@ -32,18 +29,13 @@ export class UserController {
   ) {}
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto): Promise<User & any> {
+  async register(@Body() createUserDto: CreateUserDto) {
     return await this.userService.register(createUserDto);
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto): Promise<User & any> {
+  async login(@Body() loginUserDto: LoginUserDto): Promise<User> {
     return this.userService.login(loginUserDto);
-  }
-
-  @Post('verify-code')
-  async activate(@Body('code') code: any): Promise<User & any> {
-    return this.userService.activate(code);
   }
 
   @Get('/:id')
@@ -62,33 +54,13 @@ export class UserController {
     return user;
   }
 
-  @Post('send-email')
-  async sendEmail(
-    @Query('email') email: string,
-    @GetUser() user: User,
-  ): Promise<any> {
-    return this.userService.sendMail(email, user);
-  }
-
   @Post('forget-password')
-  async sendRestEmail(
-    @Query('email') email: string,
-    @GetUser() user?: User,
-  ): Promise<any> {
-    return this.userService.sendResetMail(user, email);
-  }
-
-  @Post('reset-new-password')
-  async reset(@Body() resetUserDto: ResetUserDto): Promise<User & any> {
-    return await this.userService.reset(resetUserDto);
-  }
-
   @Post('change-password')
   @UseGuards(AuthGuard('jwt'))
   async changePassword(
     @Body() changeUserDto: ChangeUserDto,
     @GetUser() user: User,
-  ): Promise<User | any> {
+  ): Promise<User> {
     return await this.userService.changePassword(user, changeUserDto);
   }
 
@@ -116,15 +88,11 @@ export class UserController {
     return this.userService.socialLogin(socialLoginDto);
   }
   @Post('verify-email')
-  async verifyEmail(
-    @Body('email') email: string,
-  ): Promise<User | any> {
+  async verifyEmail(@Body('email') email: string) {
     return this.userService.verifyEmail(email);
   }
   @Post('activate-email')
-  async activateEmail(
-      @Body('code') code: string,
-  ): Promise<User | any> {
+  async activateEmail(@Body('code') code: string): Promise<User> {
     return this.userService.activateEmail(code);
   }
 }

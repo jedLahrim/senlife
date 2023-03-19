@@ -8,9 +8,8 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { HttpModule } from '@nestjs/axios';
-import { MyCode } from '../code/entities/code.entity';
 import { jwtStrategy } from './strategy/jwt.strategy';
-import { EmailCode } from '../email-code/entities/email-code.entity';
+import {VerificationCode} from "../verification-code/entities/verification-code.entity";
 
 @Module({
   imports: [
@@ -19,7 +18,7 @@ import { EmailCode } from '../email-code/entities/email-code.entity';
       useFactory: (configService: ConfigService) => {
         return {
           transport: {
-            host: 'smtp.sendgrid.net',
+            host: configService.get('SENDGRID_API_HOST'),
             auth: {
               user: 'apikey',
               pass: configService.get('SENDGRID_API_KEY'),
@@ -28,12 +27,24 @@ import { EmailCode } from '../email-code/entities/email-code.entity';
         };
       },
     }),
-    TypeOrmModule.forFeature([User, MyCode, EmailCode]),
+    TypeOrmModule.forFeature([User, VerificationCode]),
     HttpModule,
     ConfigModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: 'amine@^scret@$senlife@!',
+    PassportModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          defaultStrategy: configService.get('JWT_STRATEGY_NAME'),
+        };
+      },
+    }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          secret: configService.get('JWT_SECRET_KEY'),
+        };
+      },
     }),
   ],
   controllers: [UserController],

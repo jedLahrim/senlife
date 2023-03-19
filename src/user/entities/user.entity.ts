@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { MyCode } from '../../code/entities/code.entity';
 import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { Child } from '../../child/entities/child.entity';
 import { UserType } from '../enums/user-type.enum';
@@ -47,13 +46,6 @@ export class User extends BaseEntity {
   @Column({ default: false })
   @Exclude()
   activated?: boolean;
-
-  @OneToMany((_type) => MyCode, (code) => code.user, {
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  @Exclude()
-  code: MyCode[];
 
   access: string;
   refresh: string;
