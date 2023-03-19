@@ -24,7 +24,7 @@ export class User extends BaseEntity {
   @Column()
   lastName: string;
 
-  @Column({ default: null })
+  @Column()
   type: UserType;
 
   get fullName(): string {
