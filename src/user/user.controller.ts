@@ -16,10 +16,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserService } from './user.service';
-import { ResetUserDto } from './dto/reset-user-password.dto';
-import { ChangeUserDto } from './dto/change-user-password.dto';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserType } from './enums/user-type.enum';
+import {VerifyEmailDto} from "./dto/verify-email.dto";
 
 @Controller('user')
 export class UserController {
@@ -34,7 +34,7 @@ export class UserController {
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto): Promise<User> {
+  async login(@Body() loginUserDto: LoginUserDto): Promise<void> {
     return this.userService.login(loginUserDto);
   }
 
@@ -52,16 +52,6 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   getUser(@GetUser() user: User) {
     return user;
-  }
-
-  @Post('forget-password')
-  @Post('change-password')
-  @UseGuards(AuthGuard('jwt'))
-  async changePassword(
-    @Body() changeUserDto: ChangeUserDto,
-    @GetUser() user: User,
-  ): Promise<User> {
-    return await this.userService.changePassword(user, changeUserDto);
   }
 
   @Patch('')
@@ -88,11 +78,7 @@ export class UserController {
     return this.userService.socialLogin(socialLoginDto);
   }
   @Post('verify-email')
-  async verifyEmail(@Body('email') email: string) {
-    return this.userService.verifyEmail(email);
-  }
-  @Post('activate-email')
-  async activateEmail(@Body('code') code: string): Promise<User> {
-    return this.userService.activateEmail(code);
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+    return this.userService.verifyEmail(verifyEmailDto);
   }
 }

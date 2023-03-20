@@ -30,17 +30,7 @@ export class User extends BaseEntity {
     return `${this.firstName} ${this.lastName}`;
   }
 
-  @Column()
-  @IsString()
-  @MinLength(8)
-  @MaxLength(32)
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: 'password is too weak',
-  })
-  @Exclude()
-  password: string;
-
-  @Column({ default: null })
+  @Column({ default: null, type: 'text' })
   profilePicture?: string;
 
   @Column({ default: false })
