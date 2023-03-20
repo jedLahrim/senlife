@@ -72,6 +72,7 @@ import { AttachmentModule } from './attachment/attachment.module';
     NeuroDiverseConditionModule,
     ChildModule,
     AttachmentModule,
+    AttachmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
