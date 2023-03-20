@@ -6,23 +6,18 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
 import { AppError } from '../commons/errors/app-error';
-import { v4 as uuid } from 'uuid';
 import {
-  EMAIL_OR_PASSWORD_IS_INCORRECT,
   ERR_EMAIL_ALREADY_EXIST,
   ERR_EXPIRED_CODE,
   ERR_GENERATE_FIREBASE_DYNAMIC_LINK,
   ERR_INCORRECT_CODE,
-  ERR_INCORRECT_OLD_PASSWORD,
   ERR_INVALID_TOKEN,
   ERR_NOT_FOUND,
   ERR_NOT_FOUND_USER,
@@ -35,7 +30,6 @@ import axios from 'axios';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Constant } from '../commons/constant';
 import { VerificationCode } from '../verification-code/entities/verification-code.entity';
-import { UserType } from './enums/user-type.enum';
 import { MailerService } from '@nestjs-modules/mailer';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
@@ -54,7 +48,7 @@ export class UserService {
   ) {
     this.jwtSecret = this.configService.get('JWT_SECRET_KEY');
   }
-
+  //register
   async register(dto: CreateUserDto) {
     const { email } = dto;
     const user = await this.userRepo.findOne({ where: { email: email } });
@@ -63,7 +57,20 @@ export class UserService {
     } else {
       await this._createUser(dto);
       await this._sendActivationMail(dto.email);
-      // await this.userRepo.update({ id: user.id }, { activated: true });
+    }
+  }
+  //Login
+  async login(loginUserDto: LoginUserDto): Promise<void> {
+    const { email } = loginUserDto;
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user) {
+      throw new InternalServerErrorException(new AppError(ERR_NOT_FOUND_USER));
+    } else {
+      if (user.activated == false) {
+        await this._sendActivationMail(email);
+      } else {
+        await this._sendVerificationMail(email);
+      }
     }
   }
   async _sendActivationMail(email: string) {
@@ -92,7 +99,7 @@ export class UserService {
       await this.mailerService.sendMail({
         to: email,
         from: from,
-        html: Constant.verifyEmailHtml(dynamicLink.shortLink),
+        html: Constant.verifyLoginHtml(dynamicLink.shortLink),
       });
     } catch (e) {
       console.log(e);
@@ -115,23 +122,6 @@ export class UserService {
 
     return this.userRepo.save(user);
   }
-
-  //Login
-  async login(loginUserDto: LoginUserDto): Promise<void> {
-    const { email } = loginUserDto;
-    const user = await this.userRepo.findOne({ where: { email } });
-    if (!user) {
-      throw new InternalServerErrorException(new AppError(ERR_NOT_FOUND_USER));
-    } else {
-      if (user.activated == false) {
-        await this._sendActivationMail(email);
-        await this.userRepo.update({ id: user.id }, { activated: true });
-      } else {
-        await this._sendVerificationMail(email);
-      }
-    }
-  }
-
   async _getUserWithTokens(user: User) {
     try {
       const payload = { user: user.email };
@@ -157,9 +147,7 @@ export class UserService {
   async getUserById(id: string): Promise<User> {
     const found = await this.userRepo.findOne({ where: { id } });
     if (!found) {
-      throw new NotFoundException(
-        new AppError(ERR_NOT_FOUND_USER, `user with id '${id}' not found`),
-      );
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND_USER));
     }
     return found;
   }
@@ -170,11 +158,6 @@ export class UserService {
       secret: this.jwtSecret,
     });
   }
-
-  async saveUser(user: User): Promise<User> {
-    return await this.userRepo.save(user);
-  }
-
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const { firstName, lastName, profilePicture } = updateUserDto;
     const updateResult = await this.userRepo.update(id, {
@@ -265,24 +248,11 @@ export class UserService {
 
   private async _loginViaGoogle(token: string, userType) {
     try {
-      /*
-          result will be like this
-       {
-        "sub": "102321088012384578644",
-        "name": "Amine LAHRIM",
-        "given_name": "Amine",
-        "family_name": "LAHRIM",
-        "picture": "https://lh3.googleusercontent.com/a/AGNmyxaibPO-MP6enBcbllAl7kvjwyzE14hRSWc9yA1JeQ=s96-c",
-        "email": "aminelahrimdev@gmail.com",
-        "email_verified": true,
-        "locale": "en"
-       }
-       */
+      const url = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`;
       const res = await axios({
         method: 'POST',
-        url: `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`,
+        url: url,
       });
-
       const data = res.data;
       const dto = new CreateUserDto(
         data.email,
@@ -295,23 +265,9 @@ export class UserService {
       if (!user) {
         user = await this._createUser(dto, true);
       }
-
       return this._getUserWithTokens(user);
     } catch (e) {
       throw new NotFoundException(new AppError(ERR_INVALID_TOKEN));
-    }
-  }
-  async verifyEmail(verifyEmailDto: VerifyEmailDto) {
-    const { email, userType } = verifyEmailDto;
-    const code = await this.codeRepo.findOne({ where: { email: email } });
-    if (!code) {
-      const generatedCode = await this._generateEmailCode(email);
-      const dynamicLink = await this._createDynamicLink(generatedCode.code);
-      return await this._activateEmail(dynamicLink.code, userType);
-    } else {
-      await this._checkCodeValidation(code.code);
-      const dynamicLink = await this._createDynamicLink(code.code);
-      return await this._activateEmail(dynamicLink.code, userType);
     }
   }
   _generateEmailCode(email) {
@@ -351,7 +307,8 @@ export class UserService {
     const shortLink = response.data.shortLink;
     return { shortLink, code: code };
   }
-  async _activateEmail(code: string, userType: UserType) {
+  async verifyEmail(verifyEmailDto: VerifyEmailDto) {
+    const { code, userType } = verifyEmailDto;
     const found = await this._checkCodeValidation(code);
     // we take here the firstName and LastName from the name that is before the @ in the email
     // we use the substring function to take from character index 0 to @
@@ -361,9 +318,9 @@ export class UserService {
     if (!user) {
       user = await this._createUser(dto, true);
     }
+    await this.userRepo.update({ id: user.id }, { activated: true });
     return this._getUserWithTokens(user);
   }
-
   private async _checkCodeValidation(code: string): Promise<VerificationCode> {
     const now = new Date();
     const found = await this.codeRepo.findOne({

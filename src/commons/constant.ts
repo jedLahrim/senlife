@@ -7,14 +7,14 @@ export class Constant {
   static refreshExpireIn = 172800000;
   static activateHtml = function (url: string) {
     return `<p>Hello,</p>
-    <p>Please click the following button to activate your account address:</p>
+    <p>Please click on the following button to activate your account address:</p>
     <a href="${url}">
       <button>Activate Now</button>
     </a>`;
   };
-  static verifyEmailHtml = function (url: string) {
+  static verifyLoginHtml = function (url: string) {
     return `<p>Hello,</p>
-    <p>Please click the following button to verify your email address:</p>
+    <p>Please click on the following button to verify your email address:</p>
     <a href="${url}">
       <button>Verify Login</button>
     </a>`;

@@ -12,14 +12,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { GetUser } from './get-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserService } from './user.service';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserType } from './enums/user-type.enum';
-import {VerifyEmailDto} from "./dto/verify-email.dto";
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Controller('user')
 export class UserController {
@@ -71,10 +69,7 @@ export class UserController {
   }
 
   @Post('social-login')
-  // TODO: change Promise<User | any> to Promise<User>
-  async socialLogin(
-    @Body() socialLoginDto: SocialLoginDto,
-  ): Promise<User | any> {
+  async socialLogin(@Body() socialLoginDto: SocialLoginDto): Promise<User> {
     return this.userService.socialLogin(socialLoginDto);
   }
   @Post('verify-email')
