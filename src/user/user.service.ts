@@ -31,7 +31,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Constant } from '../commons/constant';
 import { VerificationCode } from '../verification-code/entities/verification-code.entity';
 import { MailerService } from '@nestjs-modules/mailer';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { UserType } from './enums/user-type.enum';
 
 @Injectable()
 export class UserService {
@@ -56,7 +56,7 @@ export class UserService {
       throw new ConflictException(new AppError(ERR_EMAIL_ALREADY_EXIST));
     } else {
       await this._createUser(dto);
-      await this._sendActivationMail(dto.email);
+      await this._sendActivationMail(dto.email, dto.userType);
     }
   }
   //Login
@@ -67,16 +67,16 @@ export class UserService {
       throw new InternalServerErrorException(new AppError(ERR_NOT_FOUND_USER));
     } else {
       if (user.activated == false) {
-        await this._sendActivationMail(email);
+        await this._sendActivationMail(user.email, user.type);
       } else {
-        await this._sendVerificationMail(email);
+        await this._sendVerificationMail(user.email, user.type);
       }
     }
   }
-  async _sendActivationMail(email: string) {
+  async _sendActivationMail(email: string, userType: UserType) {
     try {
       const from = this.configService.get('SENDER_MAIL');
-      const code = await this._generateEmailCode(email);
+      const code = await this._generateEmailCode(email, userType);
       const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
@@ -90,11 +90,10 @@ export class UserService {
       );
     }
   }
-  async _sendVerificationMail(email: string) {
+  async _sendVerificationMail(email: string, userType: UserType) {
     try {
-      await this.userRepo.findOne({ where: { email } });
       const from = this.configService.get('SENDER_MAIL');
-      const code = await this._generateEmailCode(email);
+      const code = await this._generateEmailCode(email, userType);
       const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
@@ -270,7 +269,7 @@ export class UserService {
       throw new NotFoundException(new AppError(ERR_INVALID_TOKEN));
     }
   }
-  _generateEmailCode(email) {
+  _generateEmailCode(email, userType) {
     const code = Constant.randomCodeString(6);
     const expireAt = new Date(
       new Date().getTime() + Constant.codeExpirationTime,
@@ -278,6 +277,7 @@ export class UserService {
     const thisCode = this.codeRepo.create({
       code: code,
       email: email,
+      userType: userType,
       expireAt: expireAt,
     });
     return this.codeRepo.save(thisCode);
@@ -307,13 +307,18 @@ export class UserService {
     const shortLink = response.data.shortLink;
     return { shortLink, code: code };
   }
-  async verifyEmail(verifyEmailDto: VerifyEmailDto) {
-    const { code, userType } = verifyEmailDto;
+  async verifyEmail(code: string) {
     const found = await this._checkCodeValidation(code);
     // we take here the firstName and LastName from the name that is before the @ in the email
     // we use the substring function to take from character index 0 to @
     const name = found.email.substring(0, found.email.indexOf('@'));
-    const dto = new CreateUserDto(found.email, name, name, userType, null);
+    const dto = new CreateUserDto(
+      found.email,
+      name,
+      name,
+      found.userType,
+      null,
+    );
     let user = await this.userRepo.findOne({ where: { email: found.email } });
     if (!user) {
       user = await this._createUser(dto, true);

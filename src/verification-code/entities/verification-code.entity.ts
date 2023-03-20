@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserType } from '../../user/enums/user-type.enum';
 
 @Entity()
 export class VerificationCode extends BaseEntity {
@@ -15,6 +16,8 @@ export class VerificationCode extends BaseEntity {
   code: string;
   @Column()
   email: string;
+  @Column()
+  userType: UserType;
   @Column()
   expireAt: Date;
   @CreateDateColumn()
