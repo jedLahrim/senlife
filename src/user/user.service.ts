@@ -1,8 +1,6 @@
 import {
   ConflictException,
   ForbiddenException,
-  HttpException,
-  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -80,7 +78,6 @@ export class UserService {
       const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
-        from: from,
         html: Constant.activateHtml(dynamicLink.shortLink),
       });
     } catch (e) {
@@ -97,7 +94,6 @@ export class UserService {
       const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
-        from: from,
         html: Constant.verifyLoginHtml(dynamicLink.shortLink),
       });
     } catch (e) {
@@ -138,9 +134,7 @@ export class UserService {
       user.refreshExpireAt = refreshExpireAt;
       return user;
     } catch (e) {
-      throw new NotFoundException(
-        new AppError(ERR_NOT_FOUND_USER, 'user not found'),
-      );
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND_USER));
     }
   }
   async getUserById(id: string): Promise<User> {
@@ -294,10 +288,10 @@ export class UserService {
           domainUriPrefix: 'https://senlife.page.link',
           link: `https://senlife.page.link/activate?code=${code}`,
           androidInfo: {
-            androidPackageName: 'com.senlife.app',
+            androidPackageName: Constant.ANDROID_PACKAGE_NAME,
           },
           iosInfo: {
-            iosBundleId: 'com.senlife.app',
+            iosBundleId: Constant.IOS_BUNDLE_ID,
           },
         },
       },
@@ -311,11 +305,10 @@ export class UserService {
     const found = await this._checkCodeValidation(code);
     // we take here the firstName and LastName from the name that is before the @ in the email
     // we use the substring function to take from character index 0 to @
-    const name = found.email.substring(0, found.email.indexOf('@'));
     const dto = new CreateUserDto(
       found.email,
-      name,
-      name,
+      null,
+      null,
       found.userType,
       null,
     );
@@ -335,10 +328,7 @@ export class UserService {
       throw new ConflictException(new AppError(ERR_INCORRECT_CODE));
     } else if (found.expireAt < now) {
       await this.codeRepo.delete({ id: found.id });
-      throw new HttpException(
-        new AppError(ERR_EXPIRED_CODE),
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException(new AppError(ERR_EXPIRED_CODE));
     }
     return found;
   }

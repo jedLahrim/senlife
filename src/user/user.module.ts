@@ -9,7 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { HttpModule } from '@nestjs/axios';
 import { jwtStrategy } from './strategy/jwt.strategy';
-import {VerificationCode} from "../verification-code/entities/verification-code.entity";
+import { VerificationCode } from '../verification-code/entities/verification-code.entity';
 
 @Module({
   imports: [
@@ -18,10 +18,10 @@ import {VerificationCode} from "../verification-code/entities/verification-code.
       useFactory: (configService: ConfigService) => {
         return {
           transport: {
-            host: configService.get('SENDGRID_API_HOST'),
-            auth: {
-              user: 'apikey',
-              pass: configService.get('SENDGRID_API_KEY'),
+            SES: {
+              accessKeyId: configService.get('AWS_ACCESS_KEY'),
+              secretAccessKey: configService.get('AWS_SECRET_KEY'),
+              region: configService.get('AWS_REGION'),
             },
           },
         };

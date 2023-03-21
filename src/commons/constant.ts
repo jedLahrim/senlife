@@ -19,4 +19,7 @@ export class Constant {
       <button>Verify Login</button>
     </a>`;
   };
+
+  static ANDROID_PACKAGE_NAME = 'com.senlife.app'
+  static IOS_BUNDLE_ID = 'com.senlife.app'
 }
