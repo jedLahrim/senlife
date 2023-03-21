@@ -80,7 +80,6 @@ export class UserService {
         to: email,
         from: from,
         subject: 'Activation Mail',
-        text: 'Hello, this is an activation email!',
         html: Constant.activateHtml(dynamicLink.shortLink),
       });
     } catch (e) {
@@ -97,7 +96,6 @@ export class UserService {
         to: email,
         from: from,
         subject: 'Verification Mail',
-        text: 'Hello, this is an verification email!',
         html: Constant.verifyLoginHtml(dynamicLink.shortLink),
       });
     } catch (e) {
