@@ -81,7 +81,7 @@ export class UserService {
         from: from,
         subject: 'Activation Mail',
         text: 'Hello, this is an activation email!',
-        html:Constant.activateHtml(dynamicLink.shortLink),
+        html: Constant.activateHtml(dynamicLink.shortLink),
       });
     } catch (e) {
       console.log(e);
@@ -102,9 +102,7 @@ export class UserService {
       });
     } catch (e) {
       console.log(e);
-      throw new NotFoundException(
-        new AppError(ERR_SEND_MAIL, 'email not found'),
-      );
+      throw new NotFoundException(new AppError(ERR_SEND_MAIL));
     }
   }
 
