@@ -18,10 +18,10 @@ import { VerificationCode } from '../verification-code/entities/verification-cod
       useFactory: (configService: ConfigService) => {
         return {
           transport: {
-            SES: {
-              accessKeyId: configService.get('AWS_ACCESS_KEY'),
-              secretAccessKey: configService.get('AWS_SECRET_KEY'),
-              region: configService.get('AWS_REGION'),
+            host: 'email-smtp.us-east-1.amazonaws.com',
+            auth: {
+              user: configService.get('AWS_SMTP_USER_NAME'),
+              pass: configService.get('AWS_SMTP_PASSWORD'),
             },
           },
         };

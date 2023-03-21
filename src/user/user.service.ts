@@ -78,13 +78,14 @@ export class UserService {
       const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
-        html: Constant.activateHtml(dynamicLink.shortLink),
+        from: from,
+        subject: 'Activation Mail',
+        text: 'Hello, this is an activation email!',
+        html:Constant.activateHtml(dynamicLink.shortLink),
       });
     } catch (e) {
       console.log(e);
-      throw new NotFoundException(
-        new AppError(ERR_SEND_MAIL, 'email not found'),
-      );
+      throw new NotFoundException(new AppError(ERR_SEND_MAIL));
     }
   }
   async _sendVerificationMail(email: string, userType: UserType) {
@@ -94,6 +95,9 @@ export class UserService {
       const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
+        from: from,
+        subject: 'Verification Mail',
+        text: 'Hello, this is an verification email!',
         html: Constant.verifyLoginHtml(dynamicLink.shortLink),
       });
     } catch (e) {

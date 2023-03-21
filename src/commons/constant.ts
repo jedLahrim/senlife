@@ -20,6 +20,6 @@ export class Constant {
     </a>`;
   };
 
-  static ANDROID_PACKAGE_NAME = 'com.senlife.app'
-  static IOS_BUNDLE_ID = 'com.senlife.app'
+  static ANDROID_PACKAGE_NAME = 'com.senlife.app';
+  static IOS_BUNDLE_ID = 'com.senlife.app';
 }
