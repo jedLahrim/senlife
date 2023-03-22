@@ -1,10 +1,16 @@
-export class ButtonComponent {
+export class Button {
   // ACTIVATE BUTTON
   static ACTIVATE_NOW = (url) => {
     return `<p>Hello,</p>
     <p>Please click on the following button to activate your account address:</p>
     <a href="${url}">
-      <button style="background-color: #008CBA; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer;">Activate Now</button>
+      <button style="background-color: #008CBA; 
+      color: white;
+      margin-top: 18px; 
+      padding: 12px 24px; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer;">Activate Now</button>
     </a>`;
   };
   // ACTIVATE BUTTON
@@ -12,7 +18,12 @@ export class ButtonComponent {
     return `<p>Hello,</p>
     <p>Please click on the following button to verify your email address:</p>
     <a href="${url}">
-       <button style="background-color: #008CBA; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer;">Verify Login</button>
+       <button style="background-color: #008CBA;
+        color: white;
+        margin-top: 18px;
+        padding: 12px 24px;
+        border: none; border-radius: 5px; 
+        cursor: pointer;">Verify Login</button>
     </a>`;
   };
 }

@@ -1,4 +1,4 @@
-import { ButtonComponent } from './component/button.component';
+import { Button } from './component/button.component';
 
 export class Constant {
   static randomCodeString = function (length = 6) {
@@ -8,10 +8,10 @@ export class Constant {
   static accessExpireIn = 86400000;
   static refreshExpireIn = 172800000;
   static activateHtml = function (url: string) {
-    return ButtonComponent.ACTIVATE_NOW(url);
+    return Button.ACTIVATE_NOW(url);
   };
   static verifyLoginHtml = function (url: string) {
-    return ButtonComponent.VERIFY_LOGIN(url);
+    return Button.VERIFY_LOGIN(url);
   };
 
   static ANDROID_PACKAGE_NAME = 'com.senlife.app';
