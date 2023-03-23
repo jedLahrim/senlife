@@ -9,7 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { HttpModule } from '@nestjs/axios';
 import { jwtStrategy } from './strategy/jwt.strategy';
-import { VerificationCode } from '../verification-code/entities/verification-code.entity';
+import { VerificationCode } from './entities/verification-code.entity';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { VerificationCode } from '../verification-code/entities/verification-cod
       useFactory: (configService: ConfigService) => {
         return {
           transport: {
-            host: 'email-smtp.us-east-1.amazonaws.com',
+            host: configService.get('AWS_SMTP_HOST'),
             auth: {
               user: configService.get('AWS_SMTP_USER_NAME'),
               pass: configService.get('AWS_SMTP_PASSWORD'),

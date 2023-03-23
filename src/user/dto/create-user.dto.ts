@@ -33,9 +33,9 @@ export class CreateUserDto {
   constructor(
     email: string,
     firstName: string,
-    lastName: string,
-    userType: UserType,
-    profilePicture: string,
+    lastName?: string,
+    userType?: UserType,
+    profilePicture?: string,
   ) {
     this.email = email;
     this.firstName = firstName;

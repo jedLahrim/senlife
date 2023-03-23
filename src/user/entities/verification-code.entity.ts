@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserType } from '../../user/enums/user-type.enum';
+import { UserType } from '../enums/user-type.enum';
 
 @Entity()
 export class VerificationCode extends BaseEntity {

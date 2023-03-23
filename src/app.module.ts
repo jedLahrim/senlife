@@ -12,9 +12,6 @@ import { UserModule } from './user/user.module';
 import { ChildModule } from './child/child.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { AttachmentModule } from './attachment/attachment.module';
-import { VerificationCodeController } from './verification-code/verification-code.controller';
-import { VerificationCodeService } from './verification-code/verification-code.service';
-import { VerificationCodeModule } from './verification-code/verification-code.module';
 
 @Module({
   imports: [
@@ -76,9 +73,8 @@ import { VerificationCodeModule } from './verification-code/verification-code.mo
     ChildModule,
     AttachmentModule,
     AttachmentModule,
-    VerificationCodeModule,
   ],
-  controllers: [AppController, VerificationCodeController],
-  providers: [AppService, VerificationCodeService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

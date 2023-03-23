@@ -27,7 +27,7 @@ import { SocialLoginDto, SocialLoginType } from './dto/social-login.dto';
 import axios from 'axios';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Constant } from '../commons/constant';
-import { VerificationCode } from '../verification-code/entities/verification-code.entity';
+import { VerificationCode } from './entities/verification-code.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import { UserType } from './enums/user-type.enum';
 
@@ -266,7 +266,7 @@ export class UserService {
   _generateEmailCode(email, userType) {
     const code = Constant.randomCodeString(6);
     const expireAt = new Date(
-      new Date().getTime() + Constant.codeExpirationTime,
+      new Date().getTime() + Constant.codeExpiresInMili,
     );
     const thisCode = this.codeRepo.create({
       code: code,
@@ -285,7 +285,7 @@ export class UserService {
       url: `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseAPIKey}`,
       data: {
         dynamicLinkInfo: {
-          domainUriPrefix: 'https://senlife.page.link',
+          domainUriPrefix: Constant.DYNAMIC_LINK_DOMAIN_URI_PREFIX,
           link: `https://senlife.page.link/activate?code=${code}`,
           androidInfo: {
             androidPackageName: Constant.ANDROID_PACKAGE_NAME,
@@ -305,13 +305,7 @@ export class UserService {
     const found = await this._checkCodeValidation(code);
     // we take here the firstName and LastName from the name that is before the @ in the email
     // we use the substring function to take from character index 0 to @
-    const dto = new CreateUserDto(
-      found.email,
-      null,
-      null,
-      found.userType,
-      null,
-    );
+    const dto = new CreateUserDto(found.email, found.userType);
     let user = await this.userRepo.findOne({ where: { email: found.email } });
     if (!user) {
       user = await this._createUser(dto, true);
