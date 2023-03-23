@@ -20,6 +20,9 @@ export class Child extends BaseEntity {
   @Column({ nullable: true })
   profileImageUrl?: string;
 
+  @Column({ nullable: true })
+  videoIntroUrl?: string;
+
   @Column()
   fullName?: string;
 

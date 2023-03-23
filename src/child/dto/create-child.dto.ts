@@ -12,6 +12,10 @@ export class CreateChildDto {
   @IsString()
   @IsOptional()
   profileImageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  videoIntroUrl?: string;
   @IsOptional()
   @IsString()
   address?: string;

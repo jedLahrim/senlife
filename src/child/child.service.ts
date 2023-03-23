@@ -29,6 +29,7 @@ export class ChildService {
       birthdayDate,
       address,
       profileImageUrl,
+      videoIntroUrl,
       gender,
     } = dto;
 
@@ -37,6 +38,7 @@ export class ChildService {
       birthdayDate,
       address,
       profileImageUrl,
+      videoIntroUrl,
       gender,
     });
 
@@ -122,8 +124,57 @@ export class ChildService {
     return child;
   }
 
-  update(id: string, updateChildDto: UpdateChildDto, i18n: I18nContext) {
-    return `This action updates a #${id} child`;
+  async update(
+    id: string,
+    dto: UpdateChildDto,
+    i18n: I18nContext,
+  ): Promise<Child> {
+    const {
+      fullName,
+      nuroDiverseConditionId,
+      improvementNeedIds,
+      birthdayDate,
+      address,
+      profileImageUrl,
+      videoIntroUrl,
+      gender,
+    } = dto;
+
+    const updateResult = await this.childRepo.update(id, {
+      fullName,
+      birthdayDate,
+      address,
+      profileImageUrl,
+      videoIntroUrl,
+      gender,
+    });
+
+    if (updateResult.affected && updateResult.affected > 0) {
+      if (improvementNeedIds) {
+        const childImprovementNeeds = this._getChildImprovementNeedsByIds(
+          improvementNeedIds,
+          id,
+        );
+        await this.childImprovementNeedRepo.save(childImprovementNeeds);
+      }
+      if (nuroDiverseConditionId) {
+        const childNeuroDiverseCondition =
+          this.childNeuroDiverseConditionRepo.create({
+            child: {
+              id: id,
+            },
+            neuroDiverseCondition: {
+              id: nuroDiverseConditionId,
+            },
+          });
+        await this.childNeuroDiverseConditionRepo.save(
+          childNeuroDiverseCondition,
+        );
+      }
+      return this.findOne(id, i18n);
+    } else {
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND));
+    }
   }
 
   remove(id: string) {
