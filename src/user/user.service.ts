@@ -219,7 +219,7 @@ export class UserService {
   private async _loginViaFacebook(token: string, userType) {
     try {
       const fields = 'id,email,first_name,last_name,picture';
-      const url = `https://graph.facebook.com/v12.0/me?fields=${fields}&access_token=${token}`;
+      const url = Constant.FACEBOOK_URL(fields, token);
       const response = await axios({ method: 'POST', url: url });
       const data = response.data;
       const dto = new CreateUserDto(
@@ -241,7 +241,7 @@ export class UserService {
 
   private async _loginViaGoogle(token: string, userType) {
     try {
-      const url = `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`;
+      const url = Constant.GOOGLE_URL(token);
       const res = await axios({
         method: 'POST',
         url: url,

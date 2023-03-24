@@ -14,7 +14,12 @@ export class Constant {
   static verifyLoginHtml = function (url: string) {
     return Button.VERIFY_LOGIN(url);
   };
-
+  static FACEBOOK_URL = function (fields, token) {
+    return `https://graph.facebook.com/v12.0/me?fields=${fields}&access_token=${token}`;
+  };
+  static GOOGLE_URL = function (token) {
+    return `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`;
+  };
   static ANDROID_PACKAGE_NAME = 'com.senlife.app';
   static IOS_BUNDLE_ID = 'com.senlife.app';
 }
