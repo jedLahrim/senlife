@@ -23,7 +23,7 @@ import {
 } from '../commons/errors/errors-codes';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';
-import { SocialLoginDto, SocialLoginType } from './dto/social-login.dto';
+import { SocialLoginDto, SocialLoginPlatform } from './dto/social-login.dto';
 import axios from 'axios';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Constant } from '../commons/constant';
@@ -230,11 +230,11 @@ export class UserService {
   }
 
   async socialLogin(socialLoginDto: SocialLoginDto) {
-    const { token, type, userType } = socialLoginDto;
-    switch (type) {
-      case SocialLoginType.GOOGLE:
+    const { token, platform, userType } = socialLoginDto;
+    switch (platform) {
+      case SocialLoginPlatform.GOOGLE:
         return await this._loginViaGoogle(token, userType);
-      case SocialLoginType.FACEBOOK:
+      case SocialLoginPlatform.FACEBOOK:
         return this._loginViaFacebook(token, userType);
     }
   }
@@ -247,9 +247,9 @@ export class UserService {
       const data = response.data;
       const dto = new CreateUserDto(
         data.email,
+        userType,
         data.first_name,
         data.last_name,
-        userType,
         data.picture.data.url,
       );
       let user = await this.userRepo.findOne({ where: { email: data.email } });
@@ -272,9 +272,9 @@ export class UserService {
       const data = res.data;
       const dto = new CreateUserDto(
         data.email,
-        data.givenName,
-        data.familyName,
         userType,
+        data.given_name,
+        data.family_name,
         data.picture,
       );
       let user = await this.userRepo.findOne({ where: { email: data.email } });
