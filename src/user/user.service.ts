@@ -72,10 +72,9 @@ export class UserService {
     }
   }
   async _sendActivationMail(email: string, userType: UserType) {
-
-      const from = this.configService.get('SENDER_MAIL');
-      const code = await this._generateEmailCode(email, userType);
-      const dynamicLink = await this._createDynamicLink(code.code);
+    const from = this.configService.get('SENDER_MAIL');
+    const code = await this._generateEmailCode(email, userType);
+    const dynamicLink = await this._createDynamicLink(code.code);
     try {
       await this.mailerService.sendMail({
         to: email,
@@ -89,10 +88,10 @@ export class UserService {
     }
   }
   async _sendVerificationMail(email: string, userType: UserType) {
+    const from = this.configService.get('SENDER_MAIL');
+    const code = await this._generateEmailCode(email, userType);
+    const dynamicLink = await this._createDynamicLink(code.code);
     try {
-      const from = this.configService.get('SENDER_MAIL');
-      const code = await this._generateEmailCode(email, userType);
-      const dynamicLink = await this._createDynamicLink(code.code);
       await this.mailerService.sendMail({
         to: email,
         from: from,
