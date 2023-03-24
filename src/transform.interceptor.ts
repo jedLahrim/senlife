@@ -9,7 +9,7 @@ import { classToPlain } from 'class-transformer';
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler<any>) {
+  intercept(context: ExecutionContext, next: CallHandler<T>) {
     return next.handle().pipe(map((data) => classToPlain(data)));
   }
 }

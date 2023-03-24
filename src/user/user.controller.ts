@@ -45,7 +45,7 @@ export class UserController {
     return this.userService.refreshToken(refresh);
   }
 
-  @Get()
+  @Get('me')
   @UseGuards(AuthGuard('jwt'))
   getUser(@GetUser() user: User) {
     return this.userService.getUser(user);

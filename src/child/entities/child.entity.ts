@@ -11,6 +11,8 @@ import { ChildImprovementNeed } from './child-improvement-need.entity';
 import { Expose } from 'class-transformer';
 import { ChildNeuroDiverseCondition } from './child-neuro-diverse-condition.entity';
 import { Gender } from '../../commons/enums/gender';
+import {Medication} from "../../medication/entities/medication.entity";
+import {Allergie} from "../../allergie/entities/allergie.entity";
 
 @Entity()
 export class Child extends BaseEntity {
@@ -45,4 +47,9 @@ export class Child extends BaseEntity {
   @Expose({ name: 'neuroDiverseConditions' })
   @OneToMany(() => ChildNeuroDiverseCondition, (object) => object.child)
   childNeuroDiverseConditions: ChildNeuroDiverseCondition[];
+
+  @OneToMany(() => Medication, (medication) => medication.child)
+  medication: Medication[];
+  @OneToMany(() => Allergie, (allergie) => allergie.child)
+  allergie: Allergie[];
 }
