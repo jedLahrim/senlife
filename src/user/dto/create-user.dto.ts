@@ -15,11 +15,13 @@ export class CreateUserDto {
   @IsString()
   @MinLength(4)
   @MaxLength(20)
+  @IsOptional()
   firstName: string;
 
   @IsString()
   @MinLength(4)
   @MaxLength(20)
+  @IsOptional()
   lastName: string;
   @IsEnum(UserType, {
     message: 'this User type is invalid',
