@@ -1,11 +1,12 @@
 import {
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { UserType } from '../enums/user-type.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -14,29 +15,18 @@ export class CreateUserDto {
   @IsString()
   @MinLength(4)
   @MaxLength(20)
+  @IsOptional()
   firstName: string;
 
   @IsString()
   @MinLength(4)
   @MaxLength(20)
-  lastName: string;
-
-  @IsString()
-  @MinLength(8)
-  @MaxLength(32)
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: 'password is too weak',
-  })
-  password: string;
-
-  @IsString()
   @IsOptional()
-  @MinLength(8)
-  @MaxLength(32)
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: 'password is too weak',
+  lastName: string;
+  @IsEnum(UserType, {
+    message: 'this User type is invalid',
   })
-  newPassword: string;
+  userType: UserType;
 
   @IsString()
   @IsOptional()
@@ -44,17 +34,15 @@ export class CreateUserDto {
 
   constructor(
     email: string,
-    firstName: string,
-    lastName: string,
-    password: string,
-    newPassword: string,
-    profilePicture: string,
+    userType: UserType,
+    firstName?: string,
+    lastName?: string,
+    profilePicture?: string,
   ) {
     this.email = email;
+    this.userType = userType;
     this.firstName = firstName;
     this.lastName = lastName;
-    this.password = password;
-    this.newPassword = newPassword;
     this.profilePicture = profilePicture;
   }
 }

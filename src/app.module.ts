@@ -10,7 +10,6 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { NeuroDiverseConditionModule } from './neuro-diverse-condition/neuro-diverse-condition.module';
 import { UserModule } from './user/user.module';
 import { ChildModule } from './child/child.module';
-import { CodeModule } from './code/code.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { AttachmentModule } from './attachment/attachment.module';
 
@@ -72,7 +71,6 @@ import { AttachmentModule } from './attachment/attachment.module';
     UserModule,
     NeuroDiverseConditionModule,
     ChildModule,
-    CodeModule,
     AttachmentModule,
   ],
   controllers: [AppController],

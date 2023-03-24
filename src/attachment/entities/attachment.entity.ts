@@ -10,8 +10,8 @@ import {
 export class Attachment extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  @Column({ default: null })
+  @Column()
   name: string;
-  @Column({ default: null })
+  @Column()
   url: string;
 }

@@ -1,241 +1,130 @@
 import {
   ConflictException,
-  forwardRef,
-  HttpException,
-  HttpStatus,
-  Inject,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  NotImplementedException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
 import { AppError } from '../commons/errors/app-error';
-import { v4 as uuid } from 'uuid';
 import {
-  EMAIL_OR_PASSWORD_IS_INCORRECT,
   ERR_EMAIL_ALREADY_EXIST,
-  ERR_EMAIL_NOT_FOUND,
   ERR_EXPIRED_CODE,
+  ERR_GENERATE_FIREBASE_DYNAMIC_LINK,
+  ERR_INCORRECT_CODE,
   ERR_INVALID_TOKEN,
   ERR_NOT_FOUND,
   ERR_NOT_FOUND_USER,
   ERR_SEND_MAIL,
-  ERR_USER_NOT_ACTIVATED,
 } from '../commons/errors/errors-codes';
-import { MailerService } from '@nestjs-modules/mailer';
-import { MyCode } from '../code/entities/code.entity';
 import { LoginUserDto } from './dto/login-user.dto';
-import { ResetUserDto } from './dto/reset-user-password.dto';
-import { ChangeUserDto } from './dto/change-user-password.dto';
 import { ConfigService } from '@nestjs/config';
-import { jwtStrategy } from './strategy/jwt.strategy';
 import { SocialLoginDto, SocialLoginType } from './dto/social-login.dto';
 import axios from 'axios';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Constant } from '../commons/constant';
+import { VerificationCode } from './entities/verification-code.entity';
+import { MailerService } from '@nestjs-modules/mailer';
+import { UserType } from './enums/user-type.enum';
 
 @Injectable()
 export class UserService {
   jwtSecret: string;
 
   constructor(
-    @InjectRepository(MyCode)
-    private myCodeRepo: Repository<MyCode>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
-    @Inject(forwardRef(() => JwtService))
+    @InjectRepository(VerificationCode)
+    private codeRepo: Repository<VerificationCode>,
     private jwtService: JwtService,
-    private jwtStrategy: jwtStrategy,
-    private mailerService: MailerService,
     private configService: ConfigService,
+    private mailerService: MailerService,
   ) {
     this.jwtSecret = this.configService.get('JWT_SECRET_KEY');
   }
-
+  //register
   async register(dto: CreateUserDto) {
-    const user = await this.userRepo.findOne({ where: { email: dto.email } });
+    const { email } = dto;
+    const user = await this.userRepo.findOne({ where: { email: email } });
     if (user) {
       throw new ConflictException(new AppError(ERR_EMAIL_ALREADY_EXIST));
     } else {
-      const user = await this._createUser(dto);
-      await this.sendMail(user.email, user);
+      await this._createUser(dto);
+      await this._sendActivationMail(dto.email, dto.userType);
     }
   }
-
-  async _createUser(dto: CreateUserDto, activated = false): Promise<User> {
-    const { email, firstName, lastName, password } = dto;
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const user = this.userRepo.create({
-      email,
-      firstName: firstName,
-      lastName: lastName,
-      password: hashedPassword,
-      activated,
-    });
-
-    return this.userRepo.save(user);
-  }
-
-  async sendMail(email: string, user: User): Promise<any> {
-    try {
-      const from = this.configService.get('SENDER_MAIL');
-      const code = await this.generateCode(user);
-
-      await this.mailerService.sendMail({
-        to: user.email,
-        from: from,
-        subject: `Hi ${user.fullName} this is your activation code ${code.code}`,
-        text:
-          `Hello ${user.fullName} from eventApp ` +
-          `this is your activation code ${code.code}`,
-        //html: `Click <a href="${url}">here</a> to activate your account !`,
-      });
-    } catch (e) {
-      throw new NotFoundException(new AppError(ERR_SEND_MAIL));
-    }
-  }
-
-  async sendResetMail(user: User, email: string | any) {
-    user = await this.userRepo.findOne({ where: { email } });
-
-    if (user == null) {
-      throw new ConflictException(
-        new AppError(ERR_EMAIL_NOT_FOUND, 'email not found'),
-      );
-    } else {
-      const code = await this.generateResetCode(user);
-      console.log(code.code);
-      await this.mailerService.sendMail({
-        to: user.email,
-        from: this.configService.get('SENDER_MAIL'),
-        subject: `Hi ${user.fullName} this is your activation code ${code.code}`,
-        text:
-          `Hello ${user.fullName} from eventApp ` +
-          `this is your activation code ${code.code}`,
-        //html: `Click <a href="${url}">here</a> to activate your account !`,
-      });
-    }
-  }
-
-  async activate(code: any): Promise<User> {
-    const now = new Date();
-    const found = await this.myCodeRepo.findOne({
-      where: { code: code },
-      loadEagerRelations: true,
-      relations: ['user'],
-    });
-    if (!found) {
-      throw new ConflictException('code is incorrect');
-    }
-    const user = found.user;
-    if (user.code.length > 2) {
-      throw new InternalServerErrorException(
-        new AppError(`ERR`, 'account already activated'),
-      );
-    }
-    if (found.expireAt < now) {
-      throw new HttpException(
-        new AppError(
-          ERR_EXPIRED_CODE,
-          'this code is expired try to send it again',
-        ),
-        HttpStatus.NOT_FOUND,
-      );
-    } else {
-      user.activated = true;
-      await this.userRepo.save(user);
-      return this._getUserWithTokens(user);
-    }
-  }
-
-  async reset(resetUserDto: ResetUserDto) {
-    const { newPassword, code } = resetUserDto;
-    try {
-      const now = new Date();
-
-      const found = await this.myCodeRepo.findOne({
-        where: { code: code },
-        loadEagerRelations: true,
-        relations: ['user'],
-      });
-      const user = found.user;
-      if (found.expireAt < now) {
-        //
-        await this.myCodeRepo.delete({ id: found.id });
-        return new AppError(
-          ERR_EXPIRED_CODE,
-          'this code is expired try to send it again',
-        );
-      } else {
-        if (found.code == code) {
-          const salt = await bcrypt.genSalt(5);
-          user.password = await bcrypt.hash(newPassword, salt);
-          const newUser = await this.userRepo.save(user);
-          return this._getUserWithTokens(newUser);
-        }
-      }
-    } catch (error) {
-      if (error.code == undefined) {
-        throw new ConflictException(
-          new AppError('INCORRECT_CODE', 'code is incorrect'),
-        );
-      }
-    }
-  }
-
-  async changePassword(user: User, changeUserDto: ChangeUserDto) {
-    const { oldPassword, newPassword } = changeUserDto;
-    if (user && (await bcrypt.compare(oldPassword, user.password))) {
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-      user.password = hashedPassword;
-      const newUser = await this.userRepo.save(user);
-      return this._getUserWithTokens(newUser);
-    } else {
-      throw new NotFoundException(
-        new AppError('OLD_NOT_FOUND_PASSWORD', 'old password not found'),
-      );
-    }
-  }
-
   //Login
-  async login(loginUserDto: LoginUserDto): Promise<any> {
-    const { email, password } = loginUserDto;
+  async login(loginUserDto: LoginUserDto): Promise<void> {
+    const { email } = loginUserDto;
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user) {
       throw new InternalServerErrorException(new AppError(ERR_NOT_FOUND_USER));
     } else {
-      if (user.activated === false) {
-        throw new ConflictException(new AppError(ERR_USER_NOT_ACTIVATED));
+      if (user.activated == false) {
+        await this._sendActivationMail(user.email, user.type);
       } else {
-        if (user && (await bcrypt.compare(password, user.password))) {
-          return this._getUserWithTokens(user);
-        } else {
-          throw new UnauthorizedException(
-            new AppError(EMAIL_OR_PASSWORD_IS_INCORRECT),
-          );
-        }
+        await this._sendVerificationMail(user.email, user.type);
       }
     }
   }
+  async _sendActivationMail(email: string, userType: UserType) {
+    const from = this.configService.get('SENDER_MAIL');
+    const code = await this._generateEmailCode(email, userType);
+    const dynamicLink = await this._createDynamicLink(code.code);
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        from: from,
+        subject: 'Activation Mail',
+        html: Constant.ACTIVATE_HTML(dynamicLink.shortLink),
+      });
+    } catch (e) {
+      console.log(e);
+      throw new NotFoundException(new AppError(ERR_SEND_MAIL));
+    }
+  }
+  async _sendVerificationMail(email: string, userType: UserType) {
+    const from = this.configService.get('SENDER_MAIL');
+    const code = await this._generateEmailCode(email, userType);
+    const dynamicLink = await this._createDynamicLink(code.code);
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        from: from,
+        subject: 'Verification Mail',
+        html: Constant.VERIFY_LOGIN_HTML(dynamicLink.shortLink),
+      });
+    } catch (e) {
+      console.log(e);
+      throw new NotFoundException(new AppError(ERR_SEND_MAIL));
+    }
+  }
 
+  async _createUser(dto: CreateUserDto, activated = false): Promise<User> {
+    const { email, firstName, lastName, userType, profilePicture } = dto;
+    const user = this.userRepo.create({
+      email,
+      firstName: firstName,
+      lastName: lastName,
+      type: userType,
+      activated,
+      profilePicture: profilePicture,
+    });
+
+    return this.userRepo.save(user);
+  }
   async _getUserWithTokens(user: User) {
     try {
       const payload = { user: user.email };
-      const accessExpireIn = 864000000;
+      const accessExpireIn = Constant.ACCESS_EXPIRES_IN_MILI;
       const accessToken = this.generateToken(payload, accessExpireIn);
       const accessExpireAt = new Date(new Date().getTime() + accessExpireIn);
 
-      const refreshExpireIn = 172800000;
+      const refreshExpireIn = Constant.REFRESH_EXPIRES_IN_MILI;
       const refresh = this.generateToken(payload, refreshExpireIn);
       const refreshExpireAt = new Date(new Date().getTime() + refreshExpireIn);
 
@@ -245,55 +134,23 @@ export class UserService {
       user.refreshExpireAt = refreshExpireAt;
       return user;
     } catch (e) {
-      throw new NotFoundException(
-        new AppError('USER_NOT_FOUND', 'user not found'),
-      );
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND_USER));
     }
   }
-
   async getUserById(id: string): Promise<User> {
     const found = await this.userRepo.findOne({ where: { id } });
     if (!found) {
-      throw new NotFoundException(
-        new AppError('ID_NOT_FOUND', `user with id '${id}' not found`),
-      );
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND_USER));
     }
     return found;
-  }
-
-  async generateCode(user: User) {
-    const code = Constant.randomCodeString(6);
-    const expireAt = new Date(new Date().getTime() + 200000);
-    const thisCode = this.myCodeRepo.create({
-      code: code,
-      expireAt: expireAt,
-      user: user,
-    });
-    return this.myCodeRepo.save(thisCode);
-  }
-
-  async generateResetCode(user: User) {
-    const code = Constant.randomCodeString(6);
-    const expireAt = new Date(new Date().getTime() + 200000);
-    const thisCode = this.myCodeRepo.create({
-      code: code,
-      expireAt: expireAt,
-      user: user,
-    });
-    return this.myCodeRepo.save(thisCode);
   }
 
   private generateToken(payload: any, expiresIn: number): string {
     return this.jwtService.sign(payload, {
       expiresIn: expiresIn,
-      secret: 'jedJlxSecret2023',
+      secret: this.jwtSecret,
     });
   }
-
-  async saveUser(user: User): Promise<User> {
-    return await this.userRepo.save(user);
-  }
-
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const { firstName, lastName, profilePicture } = updateUserDto;
     const updateResult = await this.userRepo.update(id, {
@@ -309,7 +166,7 @@ export class UserService {
     return this._getUserWithTokens(user);
   }
 
-  findAll() {
+  async findAll() {
     return `This action returns all user`;
   }
 
@@ -326,8 +183,8 @@ export class UserService {
       secret: this.jwtSecret,
     });
 
-    if (result.email) {
-      return this.userRepo.findOne({ where: { email: result.email } });
+    if (result.user) {
+      return this.userRepo.findOne({ where: { email: result.user } });
     } else {
       throw new NotFoundException(
         new AppError(ERR_NOT_FOUND_USER, 'user not exist'),
@@ -338,8 +195,6 @@ export class UserService {
   async refreshToken(refresh: string): Promise<User> {
     try {
       // Check if refresh is valid
-      const r = this.jwtService.verify(refresh, { secret: this.jwtSecret });
-
       // GET USER
       const user = await this.getUserByToken(refresh);
 
@@ -352,62 +207,121 @@ export class UserService {
   }
 
   async socialLogin(socialLoginDto: SocialLoginDto) {
-    const { token, type } = socialLoginDto;
-    return this._loginViaGoogle(token);
+    const { token, type, userType } = socialLoginDto;
     switch (type) {
       case SocialLoginType.GOOGLE:
-        return this._loginViaGoogle(token);
+        return await this._loginViaGoogle(token, userType);
       case SocialLoginType.FACEBOOK:
-        return this._loginViaFacebook(token);
+        return this._loginViaFacebook(token, userType);
     }
   }
 
-  private _loginViaFacebook(token: string) {
-    throw new NotImplementedException();
-  }
-
-  private async _loginViaGoogle(token: string) {
+  private async _loginViaFacebook(facebookToken: string, userType) {
     try {
-      /*
-          result will be like this
-       {
-        "sub": "102321088012384578644",
-        "name": "Amine LAHRIM",
-        "given_name": "Amine",
-        "family_name": "LAHRIM",
-        "picture": "https://lh3.googleusercontent.com/a/AGNmyxaibPO-MP6enBcbllAl7kvjwyzE14hRSWc9yA1JeQ=s96-c",
-        "email": "aminelahrimdev@gmail.com",
-        "email_verified": true,
-        "locale": "en"
-       }
-       */
-      const res = await axios({
-        method: 'POST',
-        url: `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`,
-      });
-
-      const data = res.data;
-      const password = this._randomPassword();
+      const facebookFields = Constant.FACEBOOK_FIELDS;
+      const url = Constant.FACEBOOK_URL(facebookFields, facebookToken);
+      const response = await axios({ method: 'POST', url: url });
+      const data = response.data;
       const dto = new CreateUserDto(
         data.email,
-        data.givenName,
-        data.familyName,
-        password,
-        password,
-        data.picture,
+        data.first_name,
+        data.last_name,
+        userType,
+        data.picture.data.url,
       );
       let user = await this.userRepo.findOne({ where: { email: data.email } });
       if (!user) {
         user = await this._createUser(dto, true);
       }
-
       return this._getUserWithTokens(user);
     } catch (e) {
       throw new NotFoundException(new AppError(ERR_INVALID_TOKEN));
     }
   }
 
-  private _randomPassword(): string {
-    return `random${uuid()}`;
+  private async _loginViaGoogle(googleToken: string, userType) {
+    try {
+      const url = Constant.GOOGLE_URL(googleToken);
+      const res = await axios({
+        method: 'POST',
+        url: url,
+      });
+      const data = res.data;
+      const dto = new CreateUserDto(
+        data.email,
+        data.givenName,
+        data.familyName,
+        userType,
+        data.picture,
+      );
+      let user = await this.userRepo.findOne({ where: { email: data.email } });
+      if (!user) {
+        user = await this._createUser(dto, true);
+      }
+      return this._getUserWithTokens(user);
+    } catch (e) {
+      throw new NotFoundException(new AppError(ERR_INVALID_TOKEN));
+    }
+  }
+  _generateEmailCode(email, userType) {
+    const code = Constant.randomCodeString(6);
+    const expireAt = new Date(
+      new Date().getTime() + Constant.CODE_EXPIRES_IN_MILI,
+    );
+    const thisCode = this.codeRepo.create({
+      code: code,
+      email: email,
+      userType: userType,
+      expireAt: expireAt,
+    });
+    return this.codeRepo.save(thisCode);
+  }
+  private async _createDynamicLink(
+    code: string,
+  ): Promise<{ shortLink: string; code: string }> {
+    const firebaseAPIKey = await this.configService.get('FIREBASE_WEB_API_KEY');
+    const response = await axios({
+      method: 'POST',
+      url: Constant.FIREBASE_URL(firebaseAPIKey),
+      data: {
+        dynamicLinkInfo: {
+          domainUriPrefix: Constant.DYNAMIC_LINK_DOMAIN_URI_PREFIX,
+          link: Constant.FIREBASE_LINK(code),
+          androidInfo: {
+            androidPackageName: Constant.ANDROID_PACKAGE_NAME,
+          },
+          iosInfo: {
+            iosBundleId: Constant.IOS_BUNDLE_ID,
+          },
+        },
+      },
+    }).catch(() => {
+      throw new ForbiddenException(ERR_GENERATE_FIREBASE_DYNAMIC_LINK);
+    });
+    const shortLink = response.data.shortLink;
+    return { shortLink, code };
+  }
+  async verifyEmail(code: string) {
+    const found = await this._checkCodeValidation(code);
+    const dto = new CreateUserDto(found.email, found.userType);
+    let user = await this.userRepo.findOne({ where: { email: found.email } });
+    if (!user) {
+      user = await this._createUser(dto, true);
+    }
+    await this.userRepo.update({ id: user.id }, { activated: true });
+    return this._getUserWithTokens(user);
+  }
+  private async _checkCodeValidation(code: string): Promise<VerificationCode> {
+    const now = new Date();
+    const found = await this.codeRepo.findOne({
+      where: { code: code },
+    });
+    if (!found) {
+      throw new ConflictException(new AppError(ERR_INCORRECT_CODE));
+    } else if (found.expireAt < now) {
+      await this.codeRepo.delete({ id: found.id });
+      throw new NotFoundException(new AppError(ERR_EXPIRED_CODE));
+    }
+    return found;
   }
 }
