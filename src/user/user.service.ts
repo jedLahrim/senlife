@@ -326,6 +326,6 @@ export class UserService {
   }
 
   async getUser(user: User): Promise<User> {
-    return user;
+    return this._getUserWithTokens(user);
   }
 }

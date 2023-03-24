@@ -71,6 +71,7 @@ export class UserController {
   async socialLogin(@Body() socialLoginDto: SocialLoginDto): Promise<User> {
     return this.userService.socialLogin(socialLoginDto);
   }
+
   @Post('verify-email')
   async verifyEmail(@Body('code') code: string) {
     return this.userService.verifyEmail(code);
