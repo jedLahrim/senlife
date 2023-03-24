@@ -303,8 +303,6 @@ export class UserService {
   }
   async verifyEmail(code: string) {
     const found = await this._checkCodeValidation(code);
-    // we take here the firstName and LastName from the name that is before the @ in the email
-    // we use the substring function to take from character index 0 to @
     const dto = new CreateUserDto(found.email, found.userType);
     let user = await this.userRepo.findOne({ where: { email: found.email } });
     if (!user) {
