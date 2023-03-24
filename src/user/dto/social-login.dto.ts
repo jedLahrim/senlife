@@ -1,16 +1,16 @@
 import { IsEnum } from 'class-validator';
 import { UserType } from '../enums/user-type.enum';
 
-export enum SocialLoginType {
+export enum SocialLoginPlatform {
   GOOGLE = 'GOOGLE',
   FACEBOOK = 'FACEBOOK',
 }
 
 export class SocialLoginDto {
-  @IsEnum(SocialLoginType, {
+  @IsEnum(SocialLoginPlatform, {
     message: 'this social type is invalid',
   })
-  type: SocialLoginType;
+  platform: SocialLoginPlatform;
 
   token: string;
 
