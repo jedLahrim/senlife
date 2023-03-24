@@ -6,6 +6,12 @@ export class Constant {
   };
   static CODE_EXPIRES_IN_MILI = 240000;
   static DYNAMIC_LINK_DOMAIN_URI_PREFIX = 'https://senlife.page.link';
+  static FIREBASE_LINK = function (code) {
+    return `https://senlife.page.link/activate?code=${code}`;
+  };
+  static FIREBASE_URL = function (firebaseAPIKey) {
+    return `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseAPIKey}`;
+  };
   static ACCESS_EXPIRES_IN_MILI = 86400000;
   static REFRESH_EXPIRES_IN_MILI = 172800000;
   static ACTIVATE_HTML = function (url: string) {

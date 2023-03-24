@@ -282,11 +282,11 @@ export class UserService {
     const firebaseAPIKey = await this.configService.get('FIREBASE_WEB_API_KEY');
     const response = await axios({
       method: 'POST',
-      url: `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseAPIKey}`,
+      url: Constant.FIREBASE_URL(firebaseAPIKey),
       data: {
         dynamicLinkInfo: {
           domainUriPrefix: Constant.DYNAMIC_LINK_DOMAIN_URI_PREFIX,
-          link: `https://senlife.page.link/activate?code=${code}`,
+          link: Constant.FIREBASE_LINK(code),
           androidInfo: {
             androidPackageName: Constant.ANDROID_PACKAGE_NAME,
           },
