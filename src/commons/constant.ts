@@ -17,6 +17,7 @@ export class Constant {
   static FACEBOOK_URL = function (fields, token) {
     return `https://graph.facebook.com/v12.0/me?fields=${fields}&access_token=${token}`;
   };
+  static FIELDS = 'id,email,first_name,last_name,picture';
   static GOOGLE_URL = function (token) {
     return `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`;
   };

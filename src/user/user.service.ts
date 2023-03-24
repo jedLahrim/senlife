@@ -218,7 +218,7 @@ export class UserService {
 
   private async _loginViaFacebook(token: string, userType) {
     try {
-      const fields = 'id,email,first_name,last_name,picture';
+      const fields = Constant.FIELDS;
       const url = Constant.FACEBOOK_URL(fields, token);
       const response = await axios({ method: 'POST', url: url });
       const data = response.data;
