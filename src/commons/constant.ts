@@ -14,8 +14,8 @@ export class Constant {
   static VERIFY_LOGIN_HTML = function (url: string) {
     return ButtonComponent.VERIFY_LOGIN(url);
   };
-  static FACEBOOK_URL = function (fields, facebookToken) {
-    return `https://graph.facebook.com/v12.0/me?fields=${fields}&access_token=${facebookToken}`;
+  static FACEBOOK_URL = function (facebookFields, facebookToken) {
+    return `https://graph.facebook.com/v12.0/me?fields=${facebookFields}&access_token=${facebookToken}`;
   };
   static FACEBOOK_FIELDS = 'id,email,first_name,last_name,picture';
   static GOOGLE_URL = function (googleToken) {
