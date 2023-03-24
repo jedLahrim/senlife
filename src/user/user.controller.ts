@@ -48,7 +48,7 @@ export class UserController {
   @Get()
   @UseGuards(AuthGuard('jwt'))
   getUser(@GetUser() user: User) {
-    return user;
+    return this.userService.getUser(user);
   }
 
   @Patch('')

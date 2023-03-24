@@ -324,4 +324,8 @@ export class UserService {
     }
     return found;
   }
+
+  async getUser(user: User): Promise<User> {
+    return user;
+  }
 }
