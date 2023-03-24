@@ -266,7 +266,7 @@ export class UserService {
   _generateEmailCode(email, userType) {
     const code = Constant.randomCodeString(6);
     const expireAt = new Date(
-      new Date().getTime() + Constant.codeExpiresInMili,
+      new Date().getTime() + Constant.CODE_EXPIRES_IN_MILI,
     );
     const thisCode = this.codeRepo.create({
       code: code,

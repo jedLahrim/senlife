@@ -4,7 +4,7 @@ export class Constant {
   static randomCodeString = function (length = 6) {
     return Math.random().toString(20).substr(2, length);
   };
-  static codeExpiresInMili = 240000;
+  static CODE_EXPIRES_IN_MILI = 240000;
   static DYNAMIC_LINK_DOMAIN_URI_PREFIX = 'https://senlife.page.link';
   static ACCESS_EXPIRES_IN = 86400000;
   static REFRESH_EXPIRES_IN = 172800000;
