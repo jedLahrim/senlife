@@ -299,7 +299,7 @@ export class UserService {
       throw new ForbiddenException(ERR_GENERATE_FIREBASE_DYNAMIC_LINK);
     });
     const shortLink = response.data.shortLink;
-    return { shortLink, code: code };
+    return { shortLink, code };
   }
   async verifyEmail(code: string) {
     const found = await this._checkCodeValidation(code);
