@@ -120,11 +120,11 @@ export class UserService {
   async _getUserWithTokens(user: User) {
     try {
       const payload = { user: user.email };
-      const accessExpireIn = Constant.ACCESS_EXPIRES_IN;
+      const accessExpireIn = Constant.ACCESS_EXPIRES_IN_MILI;
       const accessToken = this.generateToken(payload, accessExpireIn);
       const accessExpireAt = new Date(new Date().getTime() + accessExpireIn);
 
-      const refreshExpireIn = Constant.REFRESH_EXPIRES_IN;
+      const refreshExpireIn = Constant.REFRESH_EXPIRES_IN_MILI;
       const refresh = this.generateToken(payload, refreshExpireIn);
       const refreshExpireAt = new Date(new Date().getTime() + refreshExpireIn);
 

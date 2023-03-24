@@ -6,8 +6,8 @@ export class Constant {
   };
   static CODE_EXPIRES_IN_MILI = 240000;
   static DYNAMIC_LINK_DOMAIN_URI_PREFIX = 'https://senlife.page.link';
-  static ACCESS_EXPIRES_IN = 86400000;
-  static REFRESH_EXPIRES_IN = 172800000;
+  static ACCESS_EXPIRES_IN_MILI = 86400000;
+  static REFRESH_EXPIRES_IN_MILI = 172800000;
   static ACTIVATE_HTML = function (url: string) {
     return ButtonComponent.ACTIVATE_NOW(url);
   };
