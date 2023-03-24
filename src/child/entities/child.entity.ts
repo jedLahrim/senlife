@@ -45,4 +45,6 @@ export class Child extends BaseEntity {
   @Expose({ name: 'neuroDiverseConditions' })
   @OneToMany(() => ChildNeuroDiverseCondition, (object) => object.child)
   childNeuroDiverseConditions: ChildNeuroDiverseCondition[];
+
+
 }

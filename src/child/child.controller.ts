@@ -5,33 +5,44 @@ import {
   Get,
   Param,
   Patch,
-  Post,
+  Post, UseGuards,
 } from '@nestjs/common';
 import { ChildService } from './child.service';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { I18n, I18nContext } from 'nestjs-i18n';
+import {AuthGuard} from "@nestjs/passport";
+import {GetUser} from "../user/get-user.decorator";
+import {User} from "../user/entities/user.entity";
 
 @Controller('child')
 export class ChildController {
   constructor(private readonly childService: ChildService) {}
 
   @Post()
-  create(@Body() createChildDto: CreateChildDto, @I18n() i18n: I18nContext) {
-    return this.childService.create(createChildDto, i18n);
+  @UseGuards(AuthGuard('jwt'))
+  create(
+    @Body() createChildDto: CreateChildDto,
+    @I18n() i18n: I18nContext,
+    @GetUser() user: User,
+  ) {
+    return this.childService.create(createChildDto, i18n, user);
   }
 
   @Get()
+  @UseGuards(AuthGuard('jwt'))
   findAll(@I18n() i18n: I18nContext) {
     return this.childService.findAll(i18n);
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
   findOne(@Param('id') id: string, @I18n() i18n: I18nContext) {
     return this.childService.findOne(id, i18n);
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
   update(
     @Param('id') id: string,
     @Body() updateChildDto: UpdateChildDto,
@@ -41,6 +52,7 @@ export class ChildController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
   remove(@Param('id') id: string) {
     return this.childService.remove(id);
   }

@@ -45,10 +45,10 @@ export class UserController {
     return this.userService.refreshToken(refresh);
   }
 
-  @Get()
+  @Get('me')
   @UseGuards(AuthGuard('jwt'))
   getUser(@GetUser() user: User) {
-    return user;
+    return this.userService.getUser(user);
   }
 
   @Patch('')
@@ -71,6 +71,7 @@ export class UserController {
   async socialLogin(@Body() socialLoginDto: SocialLoginDto): Promise<User> {
     return this.userService.socialLogin(socialLoginDto);
   }
+
   @Post('verify-email')
   async verifyEmail(@Body('code') code: string) {
     return this.userService.verifyEmail(code);
