@@ -9,7 +9,7 @@ import { ChildNeuroDiverseCondition } from './entities/child-neuro-diverse-condi
 import { AppError } from '../commons/errors/app-error';
 import { ERR_NOT_FOUND } from '../commons/errors/errors-codes';
 import { I18nContext } from 'nestjs-i18n';
-import {User} from "../user/entities/user.entity";
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class ChildService {
@@ -22,7 +22,11 @@ export class ChildService {
     private childNeuroDiverseConditionRepo: Repository<ChildNeuroDiverseCondition>,
   ) {}
 
-  async create(dto: CreateChildDto, i18n: I18nContext,user:User): Promise<Child> {
+  async create(
+    dto: CreateChildDto,
+    i18n: I18nContext,
+    user: User,
+  ): Promise<Child> {
     const {
       fullName,
       nuroDiverseConditionId,
@@ -41,7 +45,7 @@ export class ChildService {
       profileImageUrl,
       videoIntroUrl,
       gender,
-      user
+      user,
     });
 
     const savedChild = await this.childRepo.save(child);

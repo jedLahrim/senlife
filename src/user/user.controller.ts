@@ -35,11 +35,6 @@ export class UserController {
     return this.userService.login(loginUserDto);
   }
 
-  @Get('/:id')
-  async getUserById(@Param('id') id: string, @GetUser() user: User) {
-    return await this.userService.getUserById(id);
-  }
-
   @Post('refresh-token')
   async refreshToken(@Body('refresh') refresh): Promise<User> {
     return this.userService.refreshToken(refresh);

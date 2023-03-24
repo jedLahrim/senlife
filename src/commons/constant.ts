@@ -12,8 +12,9 @@ export class Constant {
   static FIREBASE_URL = function (firebaseAPIKey) {
     return `https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseAPIKey}`;
   };
-  static ACCESS_EXPIRES_IN_MILI = 86400000;
-  static REFRESH_EXPIRES_IN_MILI = 172800000;
+  // for testing
+  static ACCESS_EXPIRES_IN = '1w';
+  static REFRESH_EXPIRES_IN = '60d';
   static ACTIVATE_HTML = function (url: string) {
     return ButtonComponent.ACTIVATE_NOW(url);
   };
