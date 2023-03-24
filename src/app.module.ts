@@ -12,8 +12,6 @@ import { UserModule } from './user/user.module';
 import { ChildModule } from './child/child.module';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { AttachmentModule } from './attachment/attachment.module';
-import { MedicationModule } from './medication/medication.module';
-import { AllergieModule } from './allergie/allergie.module';
 
 @Module({
   imports: [
@@ -74,8 +72,6 @@ import { AllergieModule } from './allergie/allergie.module';
     NeuroDiverseConditionModule,
     ChildModule,
     AttachmentModule,
-    MedicationModule,
-    AllergieModule,
   ],
   controllers: [AppController],
   providers: [AppService],
