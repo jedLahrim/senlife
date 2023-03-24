@@ -1,4 +1,4 @@
-export class Button {
+export class ButtonComponent {
   // ACTIVATE BUTTON
   static ACTIVATE_NOW = (url) => {
     return `<p>Hello,</p>

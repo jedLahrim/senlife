@@ -72,15 +72,16 @@ export class UserService {
     }
   }
   async _sendActivationMail(email: string, userType: UserType) {
-    try {
+
       const from = this.configService.get('SENDER_MAIL');
       const code = await this._generateEmailCode(email, userType);
       const dynamicLink = await this._createDynamicLink(code.code);
+    try {
       await this.mailerService.sendMail({
         to: email,
         from: from,
         subject: 'Activation Mail',
-        html: Constant.activateHtml(dynamicLink.shortLink),
+        html: Constant.ACTIVATE_HTML(dynamicLink.shortLink),
       });
     } catch (e) {
       console.log(e);
@@ -96,7 +97,7 @@ export class UserService {
         to: email,
         from: from,
         subject: 'Verification Mail',
-        html: Constant.verifyLoginHtml(dynamicLink.shortLink),
+        html: Constant.VERIFY_LOGIN_HTML(dynamicLink.shortLink),
       });
     } catch (e) {
       console.log(e);
@@ -120,11 +121,11 @@ export class UserService {
   async _getUserWithTokens(user: User) {
     try {
       const payload = { user: user.email };
-      const accessExpireIn = Constant.accessExpireIn;
+      const accessExpireIn = Constant.ACCESS_EXPIRES_IN;
       const accessToken = this.generateToken(payload, accessExpireIn);
       const accessExpireAt = new Date(new Date().getTime() + accessExpireIn);
 
-      const refreshExpireIn = Constant.refreshExpireIn;
+      const refreshExpireIn = Constant.REFRESH_EXPIRES_IN;
       const refresh = this.generateToken(payload, refreshExpireIn);
       const refreshExpireAt = new Date(new Date().getTime() + refreshExpireIn);
 
@@ -216,10 +217,10 @@ export class UserService {
     }
   }
 
-  private async _loginViaFacebook(token: string, userType) {
+  private async _loginViaFacebook(facebookToken: string, userType) {
     try {
-      const fields = Constant.FIELDS;
-      const url = Constant.FACEBOOK_URL(fields, token);
+      const facebookFields = Constant.FACEBOOK_FIELDS;
+      const url = Constant.FACEBOOK_URL(facebookFields, facebookToken);
       const response = await axios({ method: 'POST', url: url });
       const data = response.data;
       const dto = new CreateUserDto(
@@ -239,9 +240,9 @@ export class UserService {
     }
   }
 
-  private async _loginViaGoogle(token: string, userType) {
+  private async _loginViaGoogle(googleToken: string, userType) {
     try {
-      const url = Constant.GOOGLE_URL(token);
+      const url = Constant.GOOGLE_URL(googleToken);
       const res = await axios({
         method: 'POST',
         url: url,
