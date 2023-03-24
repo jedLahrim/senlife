@@ -2,8 +2,8 @@ import { IsEnum } from 'class-validator';
 import { UserType } from '../enums/user-type.enum';
 
 export enum SocialLoginType {
-  GOOGLE,
-  FACEBOOK,
+  GOOGLE = 'GOOGLE',
+  FACEBOOK = 'FACEBOOK',
 }
 
 export class SocialLoginDto {
