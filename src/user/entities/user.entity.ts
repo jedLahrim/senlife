@@ -5,10 +5,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { Child } from '../../child/entities/child.entity';
 import { UserType } from '../enums/user-type.enum';
+import { SocialLoginPlatform } from '../dto/social-login.dto';
 
 @Entity()
 export class User extends BaseEntity {
@@ -25,6 +24,8 @@ export class User extends BaseEntity {
 
   @Column()
   type: UserType;
+  @Column({ nullable: true })
+  socialLoginPlatform?: SocialLoginPlatform;
 
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
@@ -34,7 +35,6 @@ export class User extends BaseEntity {
   profilePicture?: string;
 
   @Column({ default: false })
-  @Exclude()
   activated?: boolean;
 
   access: string;

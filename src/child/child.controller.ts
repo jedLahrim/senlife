@@ -5,15 +5,20 @@ import {
   Get,
   Param,
   Patch,
-  Post, UseGuards,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ChildService } from './child.service';
 import { CreateChildDto } from './dto/create-child.dto';
 import { UpdateChildDto } from './dto/update-child.dto';
 import { I18n, I18nContext } from 'nestjs-i18n';
-import {AuthGuard} from "@nestjs/passport";
-import {GetUser} from "../user/get-user.decorator";
-import {User} from "../user/entities/user.entity";
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../user/get-user.decorator';
+import { User } from '../user/entities/user.entity';
+import { FilterChildDto } from './dto/filter-child.dto';
+import { Pagination } from '../commons/pagination';
+import { Child } from './entities/child.entity';
 
 @Controller('child')
 export class ChildController {
@@ -31,8 +36,12 @@ export class ChildController {
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  findAll(@I18n() i18n: I18nContext) {
-    return this.childService.findAll(i18n);
+  findAll(
+    @I18n() i18n: I18nContext,
+    @Query() dto: FilterChildDto,
+    @GetUser() user: User,
+  ): Promise<Pagination<Child>> {
+    return this.childService.findAll(i18n, dto, user);
   }
 
   @Get(':id')

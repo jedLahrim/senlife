@@ -251,15 +251,29 @@ export class UserService {
         data.first_name,
         data.last_name,
         data.picture.data.url,
+        SocialLoginPlatform.FACEBOOK,
       );
       let user = await this.userRepo.findOne({ where: { email: data.email } });
       if (!user) {
         user = await this._createUser(dto, true);
+      } else {
+        user = await this._checkAndReplaceEmptyUserParams(user, dto);
       }
       return this._getUserWithTokens(user);
     } catch (e) {
       throw new NotFoundException(new AppError(ERR_INVALID_TOKEN));
     }
+  }
+
+  private _checkAndReplaceEmptyUserParams(
+    user: User,
+    dto: CreateUserDto,
+  ): Promise<User> {
+    user.firstName ??= dto.firstName;
+    user.lastName ??= dto.firstName;
+    user.profilePicture ??= dto.profilePicture;
+    user.socialLoginPlatform ??= dto.socialLoginPlatform;
+    return this.userRepo.save(user);
   }
 
   private async _loginViaGoogle(googleToken: string, userType) {
@@ -276,10 +290,13 @@ export class UserService {
         data.given_name,
         data.family_name,
         data.picture,
+        SocialLoginPlatform.GOOGLE,
       );
       let user = await this.userRepo.findOne({ where: { email: data.email } });
       if (!user) {
         user = await this._createUser(dto, true);
+      } else {
+        user = await this._checkAndReplaceEmptyUserParams(user, dto);
       }
       return this._getUserWithTokens(user);
     } catch (e) {

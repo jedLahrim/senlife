@@ -30,4 +30,6 @@ export class Constant {
   };
   static ANDROID_PACKAGE_NAME = 'com.senlife.app';
   static IOS_BUNDLE_ID = 'com.senlife.app';
+  static TAKE = 40;
+  static SKIP = 0;
 }
