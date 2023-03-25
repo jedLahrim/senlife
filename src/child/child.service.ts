@@ -137,14 +137,18 @@ export class ChildService {
   ): Promise<Child> {
     const {
       fullName,
-      nuroDiverseConditionId,
-      improvementNeedIds,
+      improvementNeeds,
       birthdayDate,
       address,
       profileImageUrl,
       videoIntroUrl,
       gender,
     } = dto;
+
+    const improvementNeedIds = improvementNeeds.map((value) => {
+      return value.id;
+    });
+    const nuroDiverseConditionId = dto.nuroDiverseConditionId;
 
     const updateResult = await this.childRepo.update(id, {
       fullName,
@@ -156,11 +160,16 @@ export class ChildService {
     });
 
     if (updateResult.affected && updateResult.affected > 0) {
-      if (improvementNeedIds) {
+      if (improvementNeeds.length > 0) {
         const childImprovementNeeds = this._getChildImprovementNeedsByIds(
           improvementNeedIds,
           id,
         );
+        await this.childImprovementNeedRepo.delete({
+          child: {
+            id: id,
+          },
+        });
         await this.childImprovementNeedRepo.save(childImprovementNeeds);
       }
       if (nuroDiverseConditionId) {
@@ -173,6 +182,7 @@ export class ChildService {
               id: nuroDiverseConditionId,
             },
           });
+        await this.childNeuroDiverseConditionRepo.delete({ child: { id: id } });
         await this.childNeuroDiverseConditionRepo.save(
           childNeuroDiverseCondition,
         );

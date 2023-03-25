@@ -29,7 +29,9 @@ export class CreateChildDto {
   gender?: Gender;
 
   get improvementNeedIds(): string[] {
-    return this.improvementNeeds.map((value) => value.id);
+    return this.improvementNeeds.map((value) => {
+      return value.id;
+    });
   }
 
   get nuroDiverseConditionId(): string {
