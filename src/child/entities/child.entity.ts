@@ -1,10 +1,13 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { ChildImprovementNeed } from './child-improvement-need.entity';
@@ -45,6 +48,10 @@ export class Child extends BaseEntity {
   @Expose({ name: 'neuroDiverseConditions' })
   @OneToMany(() => ChildNeuroDiverseCondition, (object) => object.child)
   childNeuroDiverseConditions: ChildNeuroDiverseCondition[];
-
-
+  @CreateDateColumn()
+  createdAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
