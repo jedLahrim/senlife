@@ -210,7 +210,10 @@ export class ChildService {
     }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} child`;
+  async remove(id: string) {
+    const result = await this.childRepo.softDelete({ id });
+    if (result.affected === 0) {
+      throw new NotFoundException(new AppError(ERR_NOT_FOUND));
+    }
   }
 }
