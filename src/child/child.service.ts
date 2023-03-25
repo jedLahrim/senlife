@@ -10,6 +10,10 @@ import { AppError } from '../commons/errors/app-error';
 import { ERR_NOT_FOUND } from '../commons/errors/errors-codes';
 import { I18nContext } from 'nestjs-i18n';
 import { User } from '../user/entities/user.entity';
+import { FilterChildDto } from './dto/filter-child.dto';
+import { UserType } from '../user/enums/user-type.enum';
+import { Constant } from '../commons/constant';
+import { Pagination } from '../commons/pagination';
 
 @Injectable()
 export class ChildService {
@@ -85,8 +89,24 @@ export class ChildService {
     );
   }
 
-  findAll(i18n: I18nContext) {
-    return `This action returns all child`;
+  async findAll(
+    i18n: I18nContext,
+    dto: FilterChildDto,
+    user: User,
+  ): Promise<Pagination<Child>> {
+    const { relation, take, skip } = dto;
+    const query = this.childRepo.createQueryBuilder();
+    switch (relation) {
+      case UserType.PARENT:
+        query.andWhere('child.userId = :id ', { id: user.id });
+        break;
+      case UserType.CARER:
+        break;
+    }
+    query.take(take ?? Constant.TAKE);
+    query.skip(skip ?? Constant.SKIP);
+    const [data, total] = await query.getManyAndCount();
+    return new Pagination<Child>(data, total);
   }
 
   async findOne(id: string, i18n: I18nContext): Promise<Child> {
@@ -137,18 +157,14 @@ export class ChildService {
   ): Promise<Child> {
     const {
       fullName,
-      improvementNeeds,
+      improvementNeedIds,
+      nuroDiverseConditionId,
       birthdayDate,
       address,
       profileImageUrl,
       videoIntroUrl,
       gender,
     } = dto;
-
-    const improvementNeedIds = improvementNeeds.map((value) => {
-      return value.id;
-    });
-    const nuroDiverseConditionId = dto.nuroDiverseConditionId;
 
     const updateResult = await this.childRepo.update(id, {
       fullName,
@@ -160,7 +176,8 @@ export class ChildService {
     });
 
     if (updateResult.affected && updateResult.affected > 0) {
-      if (improvementNeeds.length > 0) {
+      if (improvementNeedIds) {
+        //const improvementNeedIds = improvementNeeds.map((value) => value.id);
         const childImprovementNeeds = this._getChildImprovementNeedsByIds(
           improvementNeedIds,
           id,

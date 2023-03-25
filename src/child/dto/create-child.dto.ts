@@ -1,7 +1,6 @@
 import { NeuroDiverseCondition } from '../../neuro-diverse-condition/entities/neuro-diverse-condition.entity';
 import { ImprovementNeed } from '../../improvement-need/entities/improvement-need.entity';
 import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
-import { Optional } from '@nestjs/common';
 import { Gender } from '../../commons/enums/gender';
 
 export class CreateChildDto {
@@ -29,12 +28,12 @@ export class CreateChildDto {
   gender?: Gender;
 
   get improvementNeedIds(): string[] {
-    return this.improvementNeeds.map((value) => {
+    return this.improvementNeeds?.map((value) => {
       return value.id;
     });
   }
 
   get nuroDiverseConditionId(): string {
-    return this.nuroDiverseCondition.id;
+    return this.nuroDiverseCondition?.id;
   }
 }
