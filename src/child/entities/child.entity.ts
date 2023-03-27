@@ -14,6 +14,7 @@ import { ChildImprovementNeed } from './child-improvement-need.entity';
 import { Expose } from 'class-transformer';
 import { ChildNeuroDiverseCondition } from './child-neuro-diverse-condition.entity';
 import { Gender } from '../../commons/enums/gender';
+import { Medication } from '../../medication/entities/medication.entity';
 
 @Entity()
 export class Child extends BaseEntity {
@@ -42,11 +43,15 @@ export class Child extends BaseEntity {
   user: User;
 
   @Expose({ name: 'improvementNeeds' })
-  @OneToMany(() => ChildImprovementNeed, (object) => object.child)
+  @OneToMany(() => ChildImprovementNeed, (object) => object.child, {
+    onDelete: 'CASCADE',
+  })
   childImprovementNeeds: ChildImprovementNeed[];
 
   @Expose({ name: 'neuroDiverseConditions' })
-  @OneToMany(() => ChildNeuroDiverseCondition, (object) => object.child)
+  @OneToMany(() => ChildNeuroDiverseCondition, (object) => object.child, {
+    onDelete: 'CASCADE',
+  })
   childNeuroDiverseConditions: ChildNeuroDiverseCondition[];
   @CreateDateColumn()
   createdAt: Date;
@@ -54,4 +59,9 @@ export class Child extends BaseEntity {
   updatedAt: Date;
   @DeleteDateColumn()
   deletedAt?: Date;
+
+  @OneToMany(() => Medication, (medication) => medication.child, {
+    onDelete: 'CASCADE',
+  })
+  medication: Medication[];
 }

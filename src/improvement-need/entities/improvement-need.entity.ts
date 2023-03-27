@@ -22,6 +22,8 @@ export class ImprovementNeed extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => ChildImprovementNeed, (object) => object.improvementNeed)
+  @OneToMany(() => ChildImprovementNeed, (object) => object.improvementNeed, {
+    onDelete: 'CASCADE',
+  })
   childImprovementNeeds: ChildImprovementNeed[];
 }

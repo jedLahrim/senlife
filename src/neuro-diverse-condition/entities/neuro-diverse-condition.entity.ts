@@ -29,6 +29,7 @@ export class NeuroDiverseCondition extends BaseEntity {
   @OneToMany(
     () => ChildNeuroDiverseCondition,
     (object) => object.neuroDiverseCondition,
+    { onDelete: 'CASCADE' },
   )
   childNeuroDiverseConditions: ChildNeuroDiverseCondition[];
 }
