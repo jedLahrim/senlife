@@ -4,8 +4,9 @@ export enum SortType {
   DESC = 'DESC',
 }
 
-export enum OrderBy {
+export enum MedicationOrderBy {
   UPDATED_AT = 'UPDATED_AT',
+  NAME = 'NAME',
 }
 export class FilterMedicationDto {
   @IsOptional()
@@ -13,10 +14,10 @@ export class FilterMedicationDto {
   @IsOptional()
   skip?: number;
   @IsOptional()
-  @IsEnum(OrderBy, {
+  @IsEnum(MedicationOrderBy, {
     message: 'this medication order type is invalid',
   })
-  orderBy?: OrderBy;
+  orderBy?: MedicationOrderBy;
   @IsOptional()
   @IsEnum(SortType, {
     message: 'this medication order type is invalid',

@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Child } from '../../child/entities/child.entity';
+import {Exclude} from "class-transformer";
 
 @Entity()
 export class Medication {
@@ -23,6 +24,7 @@ export class Medication {
   updatedAt: Date;
   @DeleteDateColumn()
   deletedAt?: Date;
+  @Exclude()
   @ManyToOne(() => Child, (child) => child.medication)
   child: Child;
 }

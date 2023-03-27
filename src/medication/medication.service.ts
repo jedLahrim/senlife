@@ -11,7 +11,7 @@ import {
 } from '../commons/errors/errors-codes';
 import {
   FilterMedicationDto,
-  OrderBy,
+  MedicationOrderBy,
   SortType,
 } from './dto/filter-medication.dto';
 import { Constant } from '../commons/constant';
@@ -43,15 +43,14 @@ export class MedicationService {
   }
   async findAll(dto: FilterMedicationDto): Promise<Pagination<Medication>> {
     let { take, skip, orderBy, sortType } = dto;
-    type Sort = 'ASC' | 'DESC';
-    const sort: Record<SortType, Sort> = {
-      ASC: sortType,
-      DESC: sortType,
-    };
+
     const query = this.medicationRepo.createQueryBuilder();
     switch (orderBy) {
-      case OrderBy.UPDATED_AT:
-        query.orderBy('medication.updatedAt', sort.ASC ?? sort.DESC);
+      case MedicationOrderBy.UPDATED_AT:
+        query.orderBy('medication.updatedAt', sortType);
+        break;
+      case MedicationOrderBy.NAME:
+        query.orderBy('medication.name', sortType);
         break;
     }
     query.take(take ?? Constant.TAKE);
