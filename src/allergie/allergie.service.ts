@@ -31,12 +31,12 @@ export class AllergieService {
     if (!child) {
       throw new NotFoundException(new AppError(ERR_NOT_FOUND));
     }
-    const medication = this.allergieRepo.create({
+    const allergie = this.allergieRepo.create({
       name,
       description,
       child: { id: childId },
     });
-    return await this.allergieRepo.save(medication);
+    return await this.allergieRepo.save(allergie);
   }
 
   async findAll(dto: FilterAllergieDto): Promise<Pagination<Allergie>> {
