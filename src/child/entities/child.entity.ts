@@ -15,6 +15,7 @@ import { Expose } from 'class-transformer';
 import { ChildNeuroDiverseCondition } from './child-neuro-diverse-condition.entity';
 import { Gender } from '../../commons/enums/gender';
 import { Medication } from '../../medication/entities/medication.entity';
+import {Allergie} from "../../allergie/entities/allergie.entity";
 
 @Entity()
 export class Child extends BaseEntity {
@@ -64,4 +65,8 @@ export class Child extends BaseEntity {
     onDelete: 'CASCADE',
   })
   medication: Medication[];
+  @OneToMany(() => Allergie, (allergie) => allergie.child, {
+    onDelete: 'CASCADE',
+  })
+  allergie: Allergie[];
 }
